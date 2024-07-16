@@ -3,7 +3,7 @@ import { ClassType } from "../Interfaces/ClassType";
 
 export const DefaultWarriorClass: CharacterClass = {
   name: ClassType.Warrior,
-  baseStats: {
+  base_stats: {
     strength: 8,
     dexterity: 4,
     intelligence: 2,
@@ -19,7 +19,7 @@ export const DefaultWarriorClass: CharacterClass = {
 
 export const DefaultMageClass: CharacterClass = {
     name: ClassType.Mage,
-    baseStats: {
+    base_stats: {
       strength: 3,
       dexterity: 4,
       intelligence: 9,
@@ -35,7 +35,7 @@ export const DefaultMageClass: CharacterClass = {
 
   export const DefaultRogueClass: CharacterClass = {
     name: ClassType.Rogue,
-    baseStats: {
+    base_stats: {
       strength: 4,
       dexterity: 7,
       intelligence: 3,
@@ -51,7 +51,7 @@ export const DefaultMageClass: CharacterClass = {
 
   export const DefaultArcherClass: CharacterClass = {
     name: ClassType.Archer,
-    baseStats: {
+    base_stats: {
       strength: 5,
       dexterity: 8,
       intelligence: 4,

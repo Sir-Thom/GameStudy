@@ -9,8 +9,8 @@ export interface Character {
     inventory: string[];
     gold: number;
     experience: number;
-    nextLevelExp: number;
-    currentExp: number;
+    next_level_exp: number;
+    current_exp: number;
     image: string;
     weapon: string;
     armor: string;
