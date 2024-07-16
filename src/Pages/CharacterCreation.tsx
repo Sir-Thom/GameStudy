@@ -1,37 +1,105 @@
 // CharacterCreationPage.tsx
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ClassType } from '../Interfaces/ClassType';
 import { Character } from '../Interfaces/Character';
 import { CharacterClass } from '../Interfaces/CharacterClass';
 import { DefaultWarriorClass, DefaultMageClass, DefaultArcherClass, DefaultRogueClass } from '../utils/Classes';
+import { invoke } from '@tauri-apps/api/core';
+import Database from '@tauri-apps/plugin-sql';
+
+
 
 const CharacterCreationPage: React.FC = () => {
+ const db = Database.load("sqlite:character.db");
+ const [weapons, setWeapons] = useState<any[]>([]);
   // State to manage character creation form data
-  const [characterData, setCharacterData] = useState<Character>({
+  const [characterData, setCharacterData] = useState<Character & { class_id?: number }>({
     name: '',
-    level: 1,
-    class: DefaultWarriorClass, // Default to Warrior class
+    level: 0,
+    class: DefaultWarriorClass,
     hp: 0,
     skills: [],
     inventory: [],
     gold: 0,
     experience: 0,
-    nextLevelExp: 100, // Example value, adjust as needed
-    currentExp: 0,
+    next_level_exp: 0,
+    current_exp: 0,
     image: '',
     weapon: '',
     armor: '',
     shield: '',
-    accessory: '',
+    accessory: ''
   });
 
+  useEffect(() => {
+    const fetchClassIds = async () => {
+      try {
+        const database = await db;
+        const results = await database.select("SELECT id FROM character_classes WHERE name = ?", [characterData.class.name]);
+        if (results.length > 0) {
+          setCharacterData({ ...characterData, class_id: results[0].id });
+        }
+      } catch (error) {
+        console.error('Error fetching class ID:', error);
+        // Handle error as needed
+      }
+    };
+  
+      const fetchWeapons = async () => {
+        try {
+          const database = await db;
+          const result: any[] = await database.select("SELECT * FROM weapons");
+          setWeapons(result);
+        } catch (error) {
+          console.error('Error fetching weapons:', error);
+          // Handle error as needed
+        }
+      };
+  
+   
+    fetchWeapons();
+    fetchClassIds();
+  }, [characterData.class.name, db]);
+
   // Handle form submission
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    // Process character creation logic here (e.g., send data to backend, validate, etc.)
-    console.log('Submitted character data:', characterData);
-    // Example: Reset form or navigate to next step
+    try {
+      if (!characterData.class_id) {
+        throw new Error('Class ID is not available.'); // Ensure class_id is available
+      }
+
+      const characterDataString = JSON.stringify(characterData);
+      const response = await invoke('create_character', { characterData: characterDataString });
+
+      // Insert character data into the characters table, including class_id
+      await (await db).execute(`
+        INSERT INTO characters (name, level, class_id, hp, skills, inventory, gold, experience, next_level_exp, current_exp, image, weapon, armor, shield, accessory)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        characterData.name,
+        characterData.level,
+        characterData.class_id,
+        characterData.hp,
+        JSON.stringify(characterData.skills),
+        JSON.stringify(characterData.inventory),
+        characterData.gold,
+        characterData.experience,
+        characterData.next_level_exp,
+        characterData.current_exp,
+        characterData.image,
+        characterData.weapon,
+        characterData.armor,
+        characterData.shield,
+        characterData.accessory,
+      ]);
+
+      console.log('Server response:', response);
+    } catch (error) {
+      console.error('Error creating character:', error);
+      // Handle error as needed
+    }
   };
 
   // Handle input changes
@@ -111,7 +179,21 @@ const CharacterCreationPage: React.FC = () => {
             </button>
           </div>
         </div>
-
+        <div>
+          <label htmlFor="weapon">Choose Your Weapon:</label>
+          <select
+            id="weapon"
+            name="weapon"
+            value={characterData.weapon}
+            onChange={handleInputChange}
+            required
+          >
+            <option value="">Select Weapon</option>
+            {weapons.map((weapon: any) => (
+              <option key={weapon.id} value={weapon.name}>{weapon.name}</option>
+            ))}
+          </select>
+        </div>
         {/* Submit Button */}
         <div>
           <button type="submit">Create Character</button>
