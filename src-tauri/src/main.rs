@@ -1,57 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use tauri_plugin_sql::{Migration,MigrationKind,Builder};
-use serde::{Deserialize, Serialize};
-
+use tauri_plugin_sql::{Migration,MigrationKind};
+mod character;
+use character::create_character;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
-#[derive(Serialize, Deserialize, Debug)]
-struct Character {
-    name: String,
-    level: u32,
-    class: CharacterClass,
-    hp: u32,
-    skills: Vec<String>,
-    inventory: Vec<String>,
-    gold: u32,
-    experience: u32,
-    next_level_exp: u32,
-    current_exp: u32,
-    image: String,
-    weapon: String,
-    armor: String,
-    shield: String,
-    accessory: String,
-}
 
-#[derive(Serialize, Deserialize, Debug)]
-struct CharacterClass {
-    name: String,
-    base_stats: Stats,
-    skills: Vec<String>,
-}
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Stats {
-    strength: u32,
-    dexterity: u32,
-    intelligence: u32,
-    constitution: u32,
-    luck: u32,
-}
-#[tauri::command()]
-fn create_character(character_data: String) -> Result<String, String> {
-    let character: Character = serde_json::from_str(&character_data)
-        .map_err(|e| format!("Failed to parse character data: {}", e))?;
-    println!("Received character data: {:?}", character);
-
-    // Process character creation logic here
-
-    Ok("Character created successfully!".to_string())
-}
 fn main() {
     let migrations = vec![
         // Define your migrations here
@@ -59,24 +17,37 @@ fn main() {
             version: 1,
             description: "create_initial_tables",
             sql: "
-                CREATE TABLE IF NOT EXISTS characters (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        level INTEGER NOT NULL,
-        class_id INTEGER NOT NULL REFERENCES character_classes(id),
-        hp INTEGER NOT NULL,
-        skills TEXT,
-        inventory TEXT,
-        gold INTEGER NOT NULL,
-        experience INTEGER NOT NULL,
-        next_level_exp INTEGER NOT NULL,
-        current_exp INTEGER NOT NULL,
-        image TEXT,
-        weapon TEXT,
-        armor TEXT,
-        shield TEXT,
-        accessory TEXT
-        );
+                    CREATE TABLE IF NOT EXISTS characters (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    level INTEGER NOT NULL,
+                    class_id INTEGER NOT NULL REFERENCES character_classes(id),
+                    hp INTEGER NOT NULL,
+                    skills TEXT,
+                    inventory TEXT,
+                    gold INTEGER NOT NULL,
+                    experience INTEGER NOT NULL,
+                    next_level_exp INTEGER NOT NULL,
+                    current_exp INTEGER NOT NULL,
+                    image TEXT,
+                    weapon_id INTEGER REFERENCES weapons(id),  
+                    armor TEXT,
+                    shield TEXT,
+                    accessory TEXT
+                );
+
+                 CREATE TABLE IF NOT EXISTS enemies (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    type TEXT NOT NULL,
+                    hp INTEGER NOT NULL,
+                    attack INTEGER NOT NULL,
+                    defense INTEGER NOT NULL,
+                    abilities TEXT,
+                    image TEXT,
+                    experience_reward INTEGER NOT NULL
+                );
+                
                 CREATE TABLE IF NOT EXISTS character_classes (
                     id INTEGER PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -95,46 +66,38 @@ fn main() {
 
                 INSERT OR IGNORE INTO character_classes (name, base_stats, skills) VALUES
                     ('Rogue', '{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]');
-            
-            CREATE TABLE weapons (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    type TEXT NOT NULL, 
-    damage_type TEXT NOT NULL,
-    base_damage INTEGER NOT NULL,
-    defense_provided INTEGER,
-    description TEXT
-);
+                
+                CREATE TABLE IF NOT EXISTS weapons (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    type TEXT NOT NULL, 
+                    damage_type TEXT NOT NULL,
+                    base_damage INTEGER NOT NULL,
+                    defense_provided INTEGER,
+                    description TEXT
+                );
 
-INSERT INTO weapons (name, type, damage_type, base_damage, defense_provided, description)
-SELECT 'Rusty Sword and Wooden Shield', 'SwordAndShield', 'Physical', 25, 30, 'A rusty sword and a wooden shield.'
-WHERE NOT EXISTS (SELECT 1 FROM weapons WHERE name = 'Rusty Sword and Wooden Shield' AND type = 'SwordAndShield');
+                INSERT OR IGNORE INTO weapons (name, type, damage_type, base_damage, defense_provided, description) VALUES
+                    ('Rusty Sword and Wooden Shield', 'SwordAndShield', 'Physical', 25, 30, 'A rusty sword and a wooden shield.'),
+                    ('Iron Dagger', 'Dagger', 'Physical', 18, NULL, 'A sharp iron dagger for quick strikes.'),
+                    ('Longbow', 'Bow', 'Physical', 22, NULL, 'A longbow for long-range attacks.'),
+                    ('Rusty GreatAxe', 'GreatAxe', 'Fire', 22, 25, 'A large axe with a rusty blade.'),
+                    ('Magic Staff', 'Staff', 'Magic', 18, NULL, 'A staff imbued with arcane energies.'),
+                    ('Steel Dagger', 'Dagger', 'Physical', 15, NULL, 'A sharp steel dagger for quick strikes.'),
+                    ('Ice Wand', 'Wand', 'Ice', 16, NULL, 'A wand that freezes enemies on contact.');
 
-INSERT INTO weapons (name, type, damage_type, base_damage, defense_provided, description)
-SELECT 'Iron Dagger', 'Dagger', 'Physical', 18, NULL, 'A sharp iron dagger for quick strikes.'
-WHERE NOT EXISTS (SELECT 1 FROM weapons WHERE name = 'Iron Dagger' AND type = 'Dagger');
-
-INSERT INTO weapons (name, type, damage_type, base_damage, defense_provided, description)
-SELECT 'Longbow', 'Bow', 'Physical', 22, NULL, 'A longbow for long-range attacks.'
-WHERE NOT EXISTS (SELECT 1 FROM weapons WHERE name = 'Longbow' AND type = 'Bow');
-
-INSERT INTO weapons (name, type, damage_type, base_damage, defense_provided, description)
-SELECT 'Rusty GreatAxe', 'GreatAxe', 'Fire', 22, 25, 'A large axe with a rusty blade.'
-WHERE NOT EXISTS (SELECT 1 FROM weapons WHERE name = 'Rusty GreatAxe' AND type = 'GreatAxe');
-
-INSERT INTO weapons (name, type, damage_type, base_damage, defense_provided, description)
-SELECT 'Magic Staff', 'Staff', 'Magic', 18, NULL, 'A staff imbued with arcane energies.'
-WHERE NOT EXISTS (SELECT 1 FROM weapons WHERE name = 'Magic Staff' AND type = 'Staff');
-
-INSERT INTO weapons (name, type, damage_type, base_damage, defense_provided, description)
-SELECT 'Steel Dagger', 'Dagger', 'Physical', 15, NULL, 'A sharp steel dagger for quick strikes.'
-WHERE NOT EXISTS (SELECT 1 FROM weapons WHERE name = 'Steel Dagger' AND type = 'Dagger');
-
-INSERT INTO weapons (name, type, damage_type, base_damage, defense_provided, description)
-SELECT 'Ice Wand', 'Wand', 'Ice', 16, NULL, 'A wand that freezes enemies on contact.'
-WHERE NOT EXISTS (SELECT 1 FROM weapons WHERE name = 'Ice Wand' AND type = 'Wand');
-            "
-            ,
+                INSERT OR IGNORE INTO enemies (name, type, hp, attack, defense, abilities, image, experience_reward) VALUES
+                    ('Goblin', 'Creature', 30, 5, 2, '[\"Slash\", \"Quick Attack\"]', 'goblin.png', 10),
+                    ('Orc', 'Creature', 60, 10, 8, '[\"Smash\", \"Charge\"]', 'orc.png', 25),
+                    ('Skeleton Warrior', 'Undead', 45, 7, 4, '[\"Bone Shield\", \"Rattle Strike\"]', 'skeleton_warrior.png', 20),
+                    ('Dark Mage', 'Mage', 40, 8, 3, '[\"Fireball\", \"Dark Barrier\"]', 'dark_mage.png', 30),
+                    ('Dragon', 'Dragon', 120, 20, 15, '[\"Fire Breath\", \"Tail Swipe\"]', 'dragon.png', 50),
+                    ('Golem', 'Construct', 80, 12, 12, '[\"Rock Slam\", \"Earthquake\"]', 'golem.png', 40),
+                    ('Vampire Bat', 'Creature', 25, 6, 2, '[\"Bite\", \"Screech\"]', 'vampire_bat.png', 15),
+                    ('Troll', 'Creature', 70, 15, 10, '[\"Club Smash\", \"Regenerate\"]', 'troll.png', 35);
+   
+                    
+            ",
             kind: MigrationKind::Up,
         }
     ];
