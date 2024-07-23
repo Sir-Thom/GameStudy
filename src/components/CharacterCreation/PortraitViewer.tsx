@@ -1,6 +1,5 @@
-import { publicDir } from "@tauri-apps/api/path";
-import { publicEncrypt } from "crypto";
-import React, { useEffect, useState } from "react";
+
+import { useEffect, useState } from "react";
 
 interface PortraitSelectionProps {
     selectedPortrait: string;
@@ -12,7 +11,7 @@ const loadPortraits = async () => {
     const imagePaths: string[] = [];
   
     for (const path in modules) {
-      const module = modules[path];
+      const module = modules[path] as { default: string };
       const url = new URL(module.default, import.meta.url).toString();
       imagePaths.push(url);
     }

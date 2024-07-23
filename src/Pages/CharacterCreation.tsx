@@ -6,6 +6,7 @@ import { DefaultWarriorClass, DefaultMageClass, DefaultArcherClass, DefaultRogue
 import { invoke } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import PortraitSelection from '../components/CharacterCreation/PortraitViewer';
+import Inventory from '../Character/Inventory';
 
 const CharacterCreationPage: React.FC = () => {
   const db = Database.load("sqlite:character.db");
@@ -216,6 +217,7 @@ const CharacterCreationPage: React.FC = () => {
           </select>
         </div>
         <PortraitSelection selectedPortrait={characterData.image} onSelect={handlePortraitSelect} />
+        <Inventory character={characterData} weapons={weapons} onEquipWeapon={(weaponId: number) => setCharacterData(prevData => ({ ...prevData, weapon_id: weaponId }))} onUnequipWeapon={() => setCharacterData(prevData => ({ ...prevData, weapon_id: 0 }))} onUseItem={(itemName: string) => console.log('Using item:', itemName)} />
         {/* Submit Button */}
         <div>
           <button type="submit">Create Character</button>
