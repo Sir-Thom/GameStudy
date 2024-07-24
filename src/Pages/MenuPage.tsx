@@ -5,13 +5,13 @@ import Database from '@tauri-apps/plugin-sql'; // Ensure this matches your impor
 const MainMenu: React.FC = () => {
   const [characters, setCharacters] = useState<any[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);
-  const db = Database.load("sqlite:character.db");
+  const db = Database.load('sqlite:character.db');
 
   useEffect(() => {
     const fetchCharacters = async () => {
       try {
         const database = await db;
-        const results = await database.select("SELECT id, name FROM characters");
+        const results = await database.select('SELECT id, name FROM characters');
         setCharacters(results as any[]);
       } catch (error) {
         console.error('Error fetching characters:', error);

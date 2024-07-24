@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use tauri_plugin_sql::{Migration,MigrationKind};
+use tauri_plugin_sql::{Migration, MigrationKind};
+pub mod armor;
 mod character;
 use character::create_character;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -8,7 +9,6 @@ use character::create_character;
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
-
 
 fn main() {
     let migrations = vec![
@@ -31,9 +31,23 @@ fn main() {
                     current_exp INTEGER NOT NULL,
                     image TEXT,
                     weapon_id INTEGER REFERENCES weapons(id),  
-                    armor TEXT,
-                    shield TEXT,
+                    armor_id  INTEGER REFERENCES armor(id),
                     accessory TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS armor (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    picture TEXT NOT NULL,
+                    defense_stat INTEGER NOT NULL,
+                    special_ability REAL,
+                    ability_type TEXT,
+                    description TEXT,
+                    strength_scaling REAL DEFAULT 0,
+                    dexterity_scaling REAL DEFAULT 0,
+                    intelligence_scaling REAL DEFAULT 0,
+                    constitution_scaling REAL DEFAULT 0,
+                    luck_scaling REAL DEFAULT 0
                 );
 
                  CREATE TABLE IF NOT EXISTS enemies (
@@ -96,21 +110,26 @@ fn main() {
                     ('Vampire Bat', 'Creature', 25, 6, 2, '[\"Bite\", \"Screech\"]', 'vampire_bat.png', 15),
                     ('Troll', 'Creature', 70, 15, 10, '[\"Club Smash\", \"Regenerate\"]', 'troll.png', 35);
    
-                    
+                INSERT OR IGNORE INTO armor (name, picture, defense_stat, special_ability, ability_type, description, strength_scaling, dexterity_scaling, intelligence_scaling, constitution_scaling, luck_scaling) VALUES
+                    ('Iron Armor', 'iron_armor.png', 40, NULL, NULL, 'Standard iron armor offering decent protection.', 0.05, 0, 0, 0.1, 0),
+                    ('Steel Armor', 'steel_armor.png', 60, NULL, NULL, 'Sturdy steel armor with high defense.', 0.1, 0, 0, 0.15, 0),
+                    ('Mage Robes', 'mage_robes.png', 10, 0.15, 'attack', 'Robes that increase magic damage by 15%.', 0, 0, 0.2, 0, 0),
+                    ('Leather Armor', 'leather_armor.png', 25, NULL, NULL, 'Light and flexible leather armor.', 0, 0.1, 0, 0, 0.05),
+                    ('Dragon Scale Armor', 'dragon_scale_armor.png', 80, 0.10, 'defense', 'Armor made from dragon scales, increasing defense and providing a 10% damage reduction.', 0.2, 0, 0, 0.3, 0.1);
             ",
             kind: MigrationKind::Up,
         }
     ];
-    
+
     tauri::Builder::default()
-    .plugin(tauri_plugin_sql::Builder::default().build())
-    .plugin(
-        tauri_plugin_sql::Builder::default()
-            .add_migrations("sqlite:character.db", migrations)
-            .build(),
-    )
-    .invoke_handler(tauri::generate_handler![greet])
-    .invoke_handler(tauri::generate_handler![create_character])
-    .run(tauri::generate_context!())
-    .expect("error while running tauri application");
+        .plugin(tauri_plugin_sql::Builder::default().build())
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations("sqlite:character.db", migrations)
+                .build(),
+        )
+        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![create_character])
+        .run(tauri::generate_context!())
+        .expect("error while running tauri application");
 }

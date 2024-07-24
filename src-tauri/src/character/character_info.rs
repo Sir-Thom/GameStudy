@@ -15,7 +15,6 @@ pub struct Character {
     pub current_exp: u32,
     pub image: String,
     pub weapon_id: i32,
-    pub armor: String,
-    pub shield: String,
+    pub armor_id: i32,
     pub accessory: String,
 }

@@ -1,5 +1,5 @@
-import { CharacterClass } from "../Interfaces/CharacterClass";
-import { ClassType } from "../Interfaces/ClassType";
+import { CharacterClass } from '../Interfaces/CharacterClass';
+import { ClassType } from '../Interfaces/ClassType';
 
 export const DefaultWarriorClass: CharacterClass = {
   name: ClassType.Warrior,
@@ -10,57 +10,41 @@ export const DefaultWarriorClass: CharacterClass = {
     constitution: 7,
     luck: 3,
   },
-  skills: [
-    "Sword Mastery",
-    "Shield Bash",
-    "Battle Cry",
-  ],
+  skills: ['Sword Mastery', 'Shield Bash', 'Battle Cry'],
 };
 
 export const DefaultMageClass: CharacterClass = {
-    name: ClassType.Mage,
-    base_stats: {
-      strength: 3,
-      dexterity: 4,
-      intelligence: 9,
-      constitution: 5,
-      luck: 4,
-    },
-    skills: [
-      "Fireball",
-      "Ice Barrier",
-      "Teleport",
-    ],
-  };
+  name: ClassType.Mage,
+  base_stats: {
+    strength: 3,
+    dexterity: 4,
+    intelligence: 9,
+    constitution: 5,
+    luck: 4,
+  },
+  skills: ['Fireball', 'Ice Barrier', 'Teleport'],
+};
 
-  export const DefaultRogueClass: CharacterClass = {
-    name: ClassType.Rogue,
-    base_stats: {
-      strength: 4,
-      dexterity: 7,
-      intelligence: 3,
-      constitution: 4,
-      luck: 6,
-    },
-    skills: [
-      "Stealth",
-      "Backstab",
-      "Evasion",
-    ],
-  };
+export const DefaultRogueClass: CharacterClass = {
+  name: ClassType.Rogue,
+  base_stats: {
+    strength: 4,
+    dexterity: 7,
+    intelligence: 3,
+    constitution: 4,
+    luck: 6,
+  },
+  skills: ['Stealth', 'Backstab', 'Evasion'],
+};
 
-  export const DefaultArcherClass: CharacterClass = {
-    name: ClassType.Archer,
-    base_stats: {
-      strength: 5,
-      dexterity: 8,
-      intelligence: 4,
-      constitution: 5,
-      luck: 5,
-    },
-    skills: [
-      "Precision Shot",
-      "Evasive Maneuvers",
-      "Marksmanship",
-    ],
-  };
+export const DefaultArcherClass: CharacterClass = {
+  name: ClassType.Archer,
+  base_stats: {
+    strength: 5,
+    dexterity: 8,
+    intelligence: 4,
+    constitution: 5,
+    luck: 5,
+  },
+  skills: ['Precision Shot', 'Evasive Maneuvers', 'Marksmanship'],
+};
