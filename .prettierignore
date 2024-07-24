@@ -1,0 +1,6 @@
+./dist
+**/.git
+**/node_modules
+**/src-tauri
+./.git
+**/pnpm-lock.yaml

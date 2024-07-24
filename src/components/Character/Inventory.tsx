@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Character } from '../Interfaces/Character';
-import { Weapon } from '../Interfaces/Weapon'; 
+import { Character } from '../../Interfaces/Character';
+import { Weapon } from '../../Interfaces/Weapon';
 
 // just to test the inventory needs to  improve
 interface InventoryProps {
@@ -33,13 +33,12 @@ const Inventory: React.FC<InventoryProps> = ({ character, weapons, onEquipWeapon
       <h2>Inventory</h2>
       <div>
         <h3>Weapons</h3>
-        <select
-          onChange={(e) => setSelectedWeapon(Number(e.target.value))}
-          value={selectedWeapon ?? ''}
-        >
+        <select onChange={(e) => setSelectedWeapon(Number(e.target.value))} value={selectedWeapon ?? ''}>
           <option value="">Select Weapon</option>
-          {weapons.map(weapon => (
-            <option key={weapon.id} value={weapon.id}>{weapon.name}</option>
+          {weapons.map((weapon) => (
+            <option key={weapon.id} value={weapon.id}>
+              {weapon.name}
+            </option>
           ))}
         </select>
         <button onClick={handleEquipWeapon}>Equip Weapon</button>

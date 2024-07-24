@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { ClassType } from '../Interfaces/ClassType';
-import {ExtendedCharacter} from '../Interfaces/Character';
+import { ExtendedCharacter } from '../Interfaces/Character';
 import { CharacterClass } from '../Interfaces/CharacterClass';
 import { DefaultWarriorClass, DefaultMageClass, DefaultArcherClass, DefaultRogueClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import PortraitSelection from '../components/CharacterCreation/PortraitViewer';
-import Inventory from '../Character/Inventory';
+import Inventory from '../components/Character/Inventory';
+import { Armor } from '../Interfaces/Armor';
+import { Weapon } from '../Interfaces/Weapon';
 
 const CharacterCreationPage: React.FC = () => {
-  const db = Database.load("sqlite:character.db");
-  const [weapons, setWeapons] = useState<any[]>([]);
-
+  const db = Database.load('sqlite:character.db');
+  const [weapons, setWeapons] = useState<Weapon[]>([]);
+  const [armor, setArmor] = useState<Armor[]>([]);
   // State to manage character creation form data
   const [characterData, setCharacterData] = useState<ExtendedCharacter>({
     name: '',
@@ -26,18 +28,19 @@ const CharacterCreationPage: React.FC = () => {
     current_exp: 0,
     image: '',
     weapon_id: 0,
-    armor: '',
-    shield: '',
-    accessory: ''
+    armor_id: 0,
+    accessory: '',
   });
 
   useEffect(() => {
     const fetchClassIds = async () => {
       try {
         const database = await db;
-        const results = await database.select("SELECT id FROM character_classes WHERE name = ?", [characterData.class.name]) as any[];
+        const results = (await database.select('SELECT id FROM character_classes WHERE name = ?', [
+          characterData.class.name,
+        ])) as any[];
         if ((results as any[]).length > 0) {
-          setCharacterData(prevData => ({ ...prevData, class_id: results[0].id }));
+          setCharacterData((prevData) => ({ ...prevData, class_id: results[0].id }));
         } else {
           console.error('Class ID not found for class:', characterData.class.name);
         }
@@ -49,18 +52,28 @@ const CharacterCreationPage: React.FC = () => {
     const fetchWeapons = async () => {
       try {
         const database = await db;
-        const result: any[] = await database.select("SELECT * FROM weapons");
+        const result: Weapon[] = await database.select('SELECT * FROM weapons');
         setWeapons(result);
       } catch (error) {
         console.error('Error fetching weapons:', error);
       }
     };
 
+    const fetchArmor = async () => {
+      try {
+        const database = await db;
+        const result: Armor[] = await database.select('SELECT * FROM armor');
+        setArmor(result);
+      } catch (error) {
+        console.error('Error fetching armor:', error);
+      }
+    };
+
+    fetchArmor();
     fetchWeapons();
     fetchClassIds();
   }, [characterData.class.name, db]);
 
-  // Handle form submission
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
@@ -69,58 +82,59 @@ const CharacterCreationPage: React.FC = () => {
       }
 
       const characterDataString = JSON.stringify(characterData);
-    const response: string = await invoke('create_character', { characterData: characterDataString });
-    console.log('Server response:', response);
-    let updatedCharacter: ExtendedCharacter;
-    if (typeof response === 'string') {
-      updatedCharacter = JSON.parse(response);
-    } else {
-      updatedCharacter = response; 
-    }
-    setCharacterData(updatedCharacter);
+      const response: string = await invoke('create_character', { characterData: characterDataString });
+      console.log('Server response:', response);
+      let updatedCharacter: ExtendedCharacter;
+      if (typeof response === 'string') {
+        updatedCharacter = JSON.parse(response);
+      } else {
+        updatedCharacter = response;
+      }
+      setCharacterData(updatedCharacter);
 
-   
+      console.log('Updated character data:', updatedCharacter.class_id);
 
-    console.log('Updated character data:', updatedCharacter.class_id);
-
-    // Insert character data into the characters table
-    await (await db).execute(`
+      // Insert character data into the characters table
+      await (
+        await db
+      ).execute(
+        `
       INSERT INTO characters (name, level, class_id, hp, skills, inventory, gold, experience, next_level_exp, current_exp, image, weapon_id, armor, shield, accessory)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      updatedCharacter.name,
-      updatedCharacter.level,
-      characterData.class_id,
-      updatedCharacter.hp,
-      JSON.stringify(updatedCharacter.skills),
-      JSON.stringify(updatedCharacter.inventory),
-      updatedCharacter.gold,
-      updatedCharacter.experience,
-      updatedCharacter.next_level_exp,
-      updatedCharacter.current_exp,
-      updatedCharacter.image,
-      updatedCharacter.weapon_id,
-      updatedCharacter.armor,
-      updatedCharacter.shield,
-      updatedCharacter.accessory,
-    ]);
+    `,
+        [
+          updatedCharacter.name,
+          updatedCharacter.level,
+          characterData.class_id,
+          updatedCharacter.hp,
+          JSON.stringify(updatedCharacter.skills),
+          JSON.stringify(updatedCharacter.inventory),
+          updatedCharacter.gold,
+          updatedCharacter.experience,
+          updatedCharacter.next_level_exp,
+          updatedCharacter.current_exp,
+          updatedCharacter.image,
+          updatedCharacter.weapon_id,
+          updatedCharacter.armor_id,
+          updatedCharacter.accessory,
+        ],
+      );
 
-    console.log('Character successfully created and saved to the database.');
-
-  } catch (error) {
-    console.error('Error creating character:', error);
-  }
-};
+      console.log('Character successfully created and saved to the database.');
+    } catch (error) {
+      console.error('Error creating character:', error);
+    }
+  };
 
   const handlePortraitSelect = (portrait: string) => {
-    setCharacterData(prevData => ({ ...prevData, image: portrait }));
+    setCharacterData((prevData) => ({ ...prevData, image: portrait }));
   };
   // Handle input changes
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
-    setCharacterData(prevData => ({
+    setCharacterData((prevData) => ({
       ...prevData,
-      [name]: name === 'weapon_id' ? parseInt(value, 10) : value
+      [name]: name === 'weapon_id' ? parseInt(value, 10) : value,
     }));
   };
 
@@ -145,7 +159,7 @@ const CharacterCreationPage: React.FC = () => {
         selectedClassData = DefaultWarriorClass; // Default to Warrior if no match
     }
 
-    setCharacterData(prevData => ({ ...prevData, class: selectedClassData }));
+    setCharacterData((prevData) => ({ ...prevData, class: selectedClassData }));
   };
 
   return (
@@ -155,14 +169,7 @@ const CharacterCreationPage: React.FC = () => {
         {/* Character Name Input */}
         <div>
           <label htmlFor="name">Character Name:</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={characterData.name}
-            onChange={handleInputChange}
-            required
-          />
+          <input type="text" id="name" name="name" value={characterData.name} onChange={handleInputChange} required />
         </div>
 
         {/* Class Selection */}
@@ -203,21 +210,23 @@ const CharacterCreationPage: React.FC = () => {
         {/* Weapon Selection */}
         <div>
           <label htmlFor="weapon">Choose Your Weapon:</label>
-          <select
-            id="weapon"
-            name="weapon_id"
-            value={characterData.weapon_id}
-            onChange={handleInputChange}
-            required
-          >
+          <select id="weapon" name="weapon_id" value={characterData.weapon_id} onChange={handleInputChange} required>
             <option value="">Select Weapon</option>
             {weapons.map((weapon: any) => (
-              <option key={weapon.id} value={weapon.id}>{weapon.name}</option>
+              <option key={weapon.id} value={weapon.id}>
+                {weapon.name}
+              </option>
             ))}
           </select>
         </div>
         <PortraitSelection selectedPortrait={characterData.image} onSelect={handlePortraitSelect} />
-        <Inventory character={characterData} weapons={weapons} onEquipWeapon={(weaponId: number) => setCharacterData(prevData => ({ ...prevData, weapon_id: weaponId }))} onUnequipWeapon={() => setCharacterData(prevData => ({ ...prevData, weapon_id: 0 }))} onUseItem={(itemName: string) => console.log('Using item:', itemName)} />
+        <Inventory
+          character={characterData}
+          weapons={weapons}
+          onEquipWeapon={(weaponId: number) => setCharacterData((prevData) => ({ ...prevData, weapon_id: weaponId }))}
+          onUnequipWeapon={() => setCharacterData((prevData) => ({ ...prevData, weapon_id: 0 }))}
+          onUseItem={(itemName: string) => console.log('Using item:', itemName)}
+        />
         {/* Submit Button */}
         <div>
           <button type="submit">Create Character</button>
