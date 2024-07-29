@@ -1,4 +1,4 @@
-import { CharacterClass } from '../Interfaces/CharacterClass';
+import { CharacterClass } from '../Interfaces/Classes';
 import { ClassType } from '../Interfaces/ClassType';
 
 export const DefaultWarriorClass: CharacterClass = {

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Character } from '../../Interfaces/Character';
+import { Character } from '../../Interfaces/Player';
 import { Weapon } from '../../Interfaces/Weapon';
 
 // just to test the inventory needs to  improve

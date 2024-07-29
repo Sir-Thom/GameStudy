@@ -1,24 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import Database from '@tauri-apps/plugin-sql'; // Ensure this matches your import
+import Database from '@tauri-apps/plugin-sql';
+import { ExtendedPlayer } from '../Interfaces/Player';
+import { fetchCharacters } from '../utils/dbUtils';
 
 const MainMenu: React.FC = () => {
-  const [characters, setCharacters] = useState<any[]>([]);
+  const [characters, setCharacters] = useState<ExtendedPlayer[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);
   const db = Database.load('sqlite:character.db');
 
   useEffect(() => {
-    const fetchCharacters = async () => {
-      try {
-        const database = await db;
-        const results = await database.select('SELECT id, name FROM characters');
-        setCharacters(results as any[]);
-      } catch (error) {
-        console.error('Error fetching characters:', error);
-      }
-    };
-
-    fetchCharacters();
+    fetchCharacters(db).then((result) => setCharacters(result));
+    fetchCharacters(db);
   }, [db]);
 
   const handleCharacterSelect = (id: number) => {
