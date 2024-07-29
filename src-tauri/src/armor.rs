@@ -2,7 +2,7 @@ pub mod armor_info;
 use crate::player::stats::Stats;
 use armor_info::Armor;
 
-fn calculate_damage_reduction(armor: &Armor, incoming_damage: f32, player_stats: Stats) -> f32 {
+pub fn calculate_damage_reduction(armor: &Armor, incoming_damage: f32, player_stats: Stats) -> f32 {
     let base_reduction = armor.defense_stat as f32;
 
     let strength_reduction = armor.strength_scaling.unwrap_or(0.0) * player_stats.strength as f32;

@@ -1,8 +1,11 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use tauri_plugin_sql::{Migration, MigrationKind};
-pub mod armor;
+mod armor;
+
+mod enemies;
 mod player;
+mod weapon;
 use player::create_character;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -87,7 +90,7 @@ CREATE TABLE IF NOT EXISTS enemies (
 CREATE TABLE IF NOT EXISTS weapons (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
-    type TEXT NOT NULL, 
+    weapon_type TEXT NOT NULL, 
     damage_type TEXT NOT NULL,
     base_damage INTEGER NOT NULL,
     defense_provided INTEGER,

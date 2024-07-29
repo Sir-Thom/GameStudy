@@ -7,8 +7,7 @@ pub struct Armor {
     pub defense_stat: i32,
     pub special_ability: Option<f32>,
     pub description: Option<String>,
-    pub ability_type: Option<String>, // "attack" or "defense"
-    // Scaling stats
+    pub ability_type: Option<String>,
     pub strength_scaling: Option<f32>,
     pub dexterity_scaling: Option<f32>,
     pub intelligence_scaling: Option<f32>,

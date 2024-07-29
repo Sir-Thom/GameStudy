@@ -2,6 +2,7 @@ use classes::Classes;
 use player_info::Player;
 
 pub mod classes;
+pub mod inventory;
 pub mod player_info;
 pub mod stats;
 
