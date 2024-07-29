@@ -1,0 +1,14 @@
+use serde::{Deserialize, Serialize};
+
+use super::stats::Stats;
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Classes {
+    pub name: String,
+    pub base_stats: Stats,
+    pub skills: String,
+    pub fire_resistance: f32,
+    pub magic_resistance: f32,
+    pub frost_resistance: f32,
+    pub lightning_resistance: f32,
+}

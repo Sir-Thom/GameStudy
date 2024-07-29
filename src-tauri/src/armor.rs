@@ -1,5 +1,5 @@
 pub mod armor_info;
-use crate::character::stats::Stats;
+use crate::player::stats::Stats;
 use armor_info::Armor;
 
 fn calculate_damage_reduction(armor: &Armor, incoming_damage: f32, player_stats: Stats) -> f32 {
@@ -56,7 +56,7 @@ mod tests {
             name: String::from("Test Armor"),
             picture: String::from("test.png"),
             defense_stat: 20,
-            special_ability: Some(10.0), // Assume 10.0 is a reduction amount or percentage
+            special_ability: Some(10.0), // Assume 10.0 is a reduction amount
             description: Some(String::from("Test armor with special ability")),
             ability_type: Some(String::from("defense")),
             strength_scaling: Some(0.1),

@@ -1,11 +1,10 @@
-use crate::character::classes::CharacterClass;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Character {
+pub struct Player {
     pub name: String,
     pub level: u32,
-    pub class: CharacterClass,
+    pub class_name: String,
     pub hp: u32,
     pub skills: Vec<String>,
     pub inventory: Vec<String>,
