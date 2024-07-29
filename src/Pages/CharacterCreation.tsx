@@ -1,30 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { ClassType } from '../Interfaces/ClassType';
-import { ExtendedCharacter } from '../Interfaces/Character';
-import { CharacterClass } from '../Interfaces/CharacterClass';
-import { DefaultWarriorClass, DefaultMageClass, DefaultArcherClass, DefaultRogueClass } from '../utils/Classes';
+import { Player } from '../Interfaces/Player';
+import { Classes } from '../Interfaces/Classes';
+import { DefaultWarriorClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import PortraitSelection from '../components/CharacterCreation/PortraitViewer';
 import Inventory from '../components/Character/Inventory';
 import { Armor } from '../Interfaces/Armor';
 import { Weapon } from '../Interfaces/Weapon';
+import { fetchClasses, fetchArmor, fetchWeapons } from '../utils/dbUtils';
 
 const CharacterCreationPage: React.FC = () => {
   const db = Database.load('sqlite:character.db');
   const [weapons, setWeapons] = useState<Weapon[]>([]);
   const [armor, setArmor] = useState<Armor[]>([]);
-  // State to manage character creation form data
-  const [characterData, setCharacterData] = useState<ExtendedCharacter>({
+  const [Classes, setClasses] = useState<Classes[]>([]);
+
+  const [characterData, setCharacterData] = useState<Player>({
     name: '',
     level: 1,
-    class: DefaultWarriorClass,
+    class_name: ClassType.Warrior,
     hp: 100,
     skills: [],
     inventory: [],
     gold: 0,
     experience: 0,
-    next_level_exp: 0,
+    next_level_exp: 100,
     current_exp: 0,
     image: '',
     weapon_id: 0,
@@ -33,94 +35,84 @@ const CharacterCreationPage: React.FC = () => {
   });
 
   useEffect(() => {
-    const fetchClassIds = async () => {
-      try {
-        const database = await db;
-        const results = (await database.select('SELECT id FROM character_classes WHERE name = ?', [
-          characterData.class.name,
-        ])) as any[];
-        if ((results as any[]).length > 0) {
-          setCharacterData((prevData) => ({ ...prevData, class_id: results[0].id }));
-        } else {
-          console.error('Class ID not found for class:', characterData.class.name);
-        }
-      } catch (error) {
-        console.error('Error fetching class ID:', error);
-      }
-    };
-
-    const fetchWeapons = async () => {
-      try {
-        const database = await db;
-        const result: Weapon[] = await database.select('SELECT * FROM weapons');
-        setWeapons(result);
-      } catch (error) {
-        console.error('Error fetching weapons:', error);
-      }
-    };
-
-    const fetchArmor = async () => {
-      try {
-        const database = await db;
-        const result: Armor[] = await database.select('SELECT * FROM armor');
-        setArmor(result);
-      } catch (error) {
-        console.error('Error fetching armor:', error);
-      }
-    };
-
-    fetchArmor();
-    fetchWeapons();
-    fetchClassIds();
-  }, [characterData.class.name, db]);
+    fetchClasses(db).then((result) => setClasses(result));
+    fetchArmor(db).then((result) => setArmor(result));
+    fetchWeapons(db).then((result) => setWeapons(result));
+    fetchClasses(db);
+    fetchWeapons(db);
+    fetchArmor(db);
+  }, [db]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    const classData = Classes.find((cls) => cls.name === characterData.class_name);
+    if (!classData) {
+      console.error('Class data not found');
+      return;
+    }
+
     try {
-      if (characterData.class_id === undefined) {
-        throw new Error('Class ID is not available.');
-      }
+      const result = await invoke('create_character', {
+        character_data: JSON.stringify(characterData),
+        class_data: JSON.stringify({
+          ...classData,
+          base_stats: JSON.parse(classData.base_stats),
+        }),
+      });
+      console.log('Character Data:', characterData);
+      console.log('Class Data:', classData);
 
-      const characterDataString = JSON.stringify(characterData);
-      const response: string = await invoke('create_character', { characterData: characterDataString });
-      console.log('Server response:', response);
-      let updatedCharacter: ExtendedCharacter;
-      if (typeof response === 'string') {
-        updatedCharacter = JSON.parse(response);
+      if (result) {
+        const updatedCharacter: Player = result as Player;
+        setCharacterData(updatedCharacter);
+
+        const database = await db;
+        const insertResult = await database.execute(
+          `
+            INSERT INTO players (name, level, class_name, hp, skills, inventory, gold, experience, next_level_exp, current_exp, image, weapon_id, armor_id, accessory)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `,
+          [
+            updatedCharacter.name,
+            updatedCharacter.level,
+            updatedCharacter.class_name,
+            updatedCharacter.hp,
+            JSON.stringify(updatedCharacter.skills),
+            JSON.stringify(updatedCharacter.inventory),
+            updatedCharacter.gold,
+            updatedCharacter.experience,
+            updatedCharacter.next_level_exp,
+            updatedCharacter.current_exp,
+            updatedCharacter.image,
+            updatedCharacter.weapon_id,
+            updatedCharacter.armor_id,
+            updatedCharacter.accessory,
+          ],
+        );
+
+        const playerId = insertResult.lastInsertId;
+        console.log('New player ID:', playerId);
+
+        await database.execute(
+          `
+            INSERT INTO player_stats (player_id, strength, dexterity, intelligence, constitution, luck)
+            SELECT ?, 
+                   CAST(json_extract(base_stats, '$.strength') AS INTEGER), 
+                   CAST(json_extract(base_stats, '$.dexterity') AS INTEGER), 
+                   CAST(json_extract(base_stats, '$.intelligence') AS INTEGER), 
+                   CAST(json_extract(base_stats, '$.constitution') AS INTEGER), 
+                   CAST(json_extract(base_stats, '$.luck') AS INTEGER)
+            FROM classes
+            WHERE name = ?
+          `,
+          [playerId, updatedCharacter.class_name],
+        );
+
+        console.log('Character successfully created and saved to the database.');
       } else {
-        updatedCharacter = response;
+        console.error('Failed to create character');
       }
-      setCharacterData(updatedCharacter);
-
-      console.log('Updated character data:', updatedCharacter.class_id);
-
-      // Insert character data into the characters table
-      await (
-        await db
-      ).execute(
-        `
-      INSERT INTO characters (name, level, class_id, hp, skills, inventory, gold, experience, next_level_exp, current_exp, image, weapon_id, armor, shield, accessory)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `,
-        [
-          updatedCharacter.name,
-          updatedCharacter.level,
-          characterData.class_id,
-          updatedCharacter.hp,
-          JSON.stringify(updatedCharacter.skills),
-          JSON.stringify(updatedCharacter.inventory),
-          updatedCharacter.gold,
-          updatedCharacter.experience,
-          updatedCharacter.next_level_exp,
-          updatedCharacter.current_exp,
-          updatedCharacter.image,
-          updatedCharacter.weapon_id,
-          updatedCharacter.armor_id,
-          updatedCharacter.accessory,
-        ],
-      );
-
-      console.log('Character successfully created and saved to the database.');
     } catch (error) {
       console.error('Error creating character:', error);
     }
@@ -129,37 +121,18 @@ const CharacterCreationPage: React.FC = () => {
   const handlePortraitSelect = (portrait: string) => {
     setCharacterData((prevData) => ({ ...prevData, image: portrait }));
   };
-  // Handle input changes
+
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
     setCharacterData((prevData) => ({
       ...prevData,
-      [name]: name === 'weapon_id' ? parseInt(value, 10) : value,
+      [name]: name === 'weapon_id' || name === 'armor_id' ? parseInt(value, 10) : value,
     }));
   };
 
-  // Handle class selection
   const handleClassSelect = (selectedClass: ClassType) => {
-    let selectedClassData: CharacterClass;
-
-    switch (selectedClass) {
-      case ClassType.Warrior:
-        selectedClassData = DefaultWarriorClass;
-        break;
-      case ClassType.Mage:
-        selectedClassData = DefaultMageClass;
-        break;
-      case ClassType.Archer:
-        selectedClassData = DefaultArcherClass;
-        break;
-      case ClassType.Rogue:
-        selectedClassData = DefaultRogueClass;
-        break;
-      default:
-        selectedClassData = DefaultWarriorClass; // Default to Warrior if no match
-    }
-
-    setCharacterData((prevData) => ({ ...prevData, class: selectedClassData }));
+    const selectedClassData = Classes.find((cls) => cls.name === selectedClass) || DefaultWarriorClass;
+    setCharacterData((prevData) => ({ ...prevData, class_name: selectedClassData.name }));
   };
 
   return (
@@ -176,34 +149,16 @@ const CharacterCreationPage: React.FC = () => {
         <div>
           <label>Choose Your Class:</label>
           <div>
-            <button
-              type="button"
-              onClick={() => handleClassSelect(ClassType.Warrior)}
-              className={`class-button ${characterData.class.name === 'Warrior' ? 'selected' : ''}`}
-            >
-              Warrior
-            </button>
-            <button
-              type="button"
-              onClick={() => handleClassSelect(ClassType.Mage)}
-              className={`class-button ${characterData.class.name === 'Mage' ? 'selected' : ''}`}
-            >
-              Mage
-            </button>
-            <button
-              type="button"
-              onClick={() => handleClassSelect(ClassType.Archer)}
-              className={`class-button ${characterData.class.name === 'Archer' ? 'selected' : ''}`}
-            >
-              Archer
-            </button>
-            <button
-              type="button"
-              onClick={() => handleClassSelect(ClassType.Rogue)}
-              className={`class-button ${characterData.class.name === 'Rogue' ? 'selected' : ''}`}
-            >
-              Rogue
-            </button>
+            {Object.values(ClassType).map((classType) => (
+              <button
+                key={classType}
+                type="button"
+                onClick={() => handleClassSelect(classType)}
+                className={`class-button ${characterData.class_name === classType ? 'selected' : ''}`}
+              >
+                {classType}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -212,9 +167,20 @@ const CharacterCreationPage: React.FC = () => {
           <label htmlFor="weapon">Choose Your Weapon:</label>
           <select id="weapon" name="weapon_id" value={characterData.weapon_id} onChange={handleInputChange} required>
             <option value="">Select Weapon</option>
-            {weapons.map((weapon: any) => (
+            {weapons.map((weapon) => (
               <option key={weapon.id} value={weapon.id}>
                 {weapon.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="armor">Choose Your Armor:</label>
+          <select id="armor" name="armor_id" value={characterData.armor_id} onChange={handleInputChange} required>
+            <option value="">Select Armor</option>
+            {armor.map((armor) => (
+              <option key={armor.id} value={armor.id}>
+                {armor.name}
               </option>
             ))}
           </select>

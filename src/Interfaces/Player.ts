@@ -1,9 +1,7 @@
-import { CharacterClass } from './CharacterClass';
-
-export interface Character {
+export interface Player {
   name: string;
   level: number;
-  class: CharacterClass;
+  class_name: string;
   hp: number;
   skills: string[];
   inventory: string[];
@@ -16,6 +14,8 @@ export interface Character {
   armor_id: number;
   accessory: string;
 }
-export interface ExtendedCharacter extends Character {
+
+export interface ExtendedPlayer extends Player {
+  id: number;
   class_id?: number;
 }
