@@ -7,7 +7,7 @@ pub struct Player {
     pub class_name: String,
     pub hp: u32,
     pub skills: Vec<String>,
-    pub inventory: Vec<String>,
+    pub inventory_id: i32,
     pub gold: u32,
     pub experience: u32,
     pub next_level_exp: u32,

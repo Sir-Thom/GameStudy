@@ -88,7 +88,7 @@ mod tests {
             "class_name": "Test Class",
             "hp": 0,
             "skills": [],
-            "inventory": [],
+            "inventory": 0,
             "gold": 0,
             "experience": 0,
             "next_level_exp": 0,

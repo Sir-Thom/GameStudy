@@ -1,24 +1,36 @@
 import React, { useState } from 'react';
-import { Character } from '../../Interfaces/Player';
+import { ExtendedPlayer, Player } from '../../Interfaces/Player';
 import { Weapon } from '../../Interfaces/Weapon';
+import { Inventory } from '../../Interfaces/Inventory';
+import { fetchPlayerInventory } from '../../utils/dbUtils';
+import Database from '@tauri-apps/plugin-sql';
 
 // just to test the inventory needs to  improve
 interface InventoryProps {
-  character: Character;
+  character: Player;
   weapons: Weapon[];
   onEquipWeapon: (weaponId: number) => void;
   onUnequipWeapon: () => void;
   onUseItem: (itemName: string) => void;
 }
 
-const Inventory: React.FC<InventoryProps> = ({ character, weapons, onEquipWeapon, onUnequipWeapon, onUseItem }) => {
+const InventoryPlayer: React.FC<InventoryProps> = ({
+  character,
+  weapons,
+  onEquipWeapon,
+  onUnequipWeapon,
+  onUseItem,
+}) => {
   const [selectedWeapon, setSelectedWeapon] = useState<number | null>(null);
-
+  const [inventory, setInventory] = useState<Inventory[]>([]);
+  const db = Database.load('sqlite:character.db');
   const handleEquipWeapon = () => {
     if (selectedWeapon !== null) {
       onEquipWeapon(selectedWeapon);
     }
   };
+
+  fetchPlayerInventory(db, character.id).then((result) => setInventory(result));
 
   const handleUnequipWeapon = () => {
     onUnequipWeapon();
@@ -47,7 +59,7 @@ const Inventory: React.FC<InventoryProps> = ({ character, weapons, onEquipWeapon
 
       <div>
         <h3>Items</h3>
-        {character.inventory.map((item, index) => (
+        {inventory.map((item, index) => (
           <div key={index}>
             <span>{item}</span>
             <button onClick={() => handleUseItem(item)}>Use</button>
@@ -58,4 +70,4 @@ const Inventory: React.FC<InventoryProps> = ({ character, weapons, onEquipWeapon
   );
 };
 
-export default Inventory;
+export default InventoryPlayer;

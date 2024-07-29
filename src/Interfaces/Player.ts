@@ -4,7 +4,7 @@ export interface Player {
   class_name: string;
   hp: number;
   skills: string[];
-  inventory: string[];
+  inventory_id: number;
   gold: number;
   experience: number;
   next_level_exp: number;
