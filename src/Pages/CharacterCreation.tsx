@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ClassType } from '../Interfaces/ClassType';
-import { ExtendedPlayer } from '../Interfaces/Player';
+import { ExtendedPlayer, Player } from '../Interfaces/Player';
 import { Classes } from '../Interfaces/Classes';
 import { DefaultWarriorClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';

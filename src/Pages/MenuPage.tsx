@@ -4,8 +4,6 @@ import Database from '@tauri-apps/plugin-sql';
 import { ExtendedPlayer } from '../Interfaces/Player';
 import { fetchCharacters, fetchPlayer, fetchPlayerArmor, fetchPlayerStats } from '../utils/dbUtils';
 import { invoke } from '@tauri-apps/api/core';
-
-import '../App.css';
 import Inventory from '../components/Inventory/inventory';
 
 const MainMenu: React.FC = () => {
