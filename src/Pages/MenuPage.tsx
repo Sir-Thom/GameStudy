@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Database from '@tauri-apps/plugin-sql';
 import { ExtendedPlayer } from '../Interfaces/Player';
-import { fetchCharacters } from '../utils/dbUtils';
+import { fetchCharacters, fetchPlayer, fetchPlayerArmor, fetchPlayerStats } from '../utils/dbUtils';
+import { invoke } from '@tauri-apps/api/core';
 
 const MainMenu: React.FC = () => {
   const [characters, setCharacters] = useState<ExtendedPlayer[]>([]);
@@ -18,9 +19,50 @@ const MainMenu: React.FC = () => {
     setSelectedCharacter(id);
   };
 
-  const handleLoadCharacter = () => {
+  const handleLoadCharacter = async () => {
     if (selectedCharacter !== null) {
-      console.log(`Loading character with ID: ${selectedCharacter}`);
+      try {
+        // Fetch the player data
+        const playerArray = await fetchPlayer(db, selectedCharacter);
+        const player = playerArray[0]; // Access the first element if it's an array
+        console.log('Player Data:', player);
+
+        if (!player) {
+          console.error('Player data is undefined');
+          return;
+        }
+
+        const playerId = player.id;
+        const armorId = player.armor_id;
+
+        // Fetch player stats
+        const playerStats = await fetchPlayerStats(db, playerId);
+        console.log('Player Stats:', playerStats);
+
+        // Ensure playerStats is not empty and properly formatted
+        if (playerStats === '[]') {
+          console.error('Player stats are empty');
+          return;
+        }
+
+        // Invoke the Rust function with player stats
+        await invoke('get_player_stats', { player_stats: playerStats });
+
+        // Fetch armor data
+        if (armorId !== undefined && armorId !== null) {
+          const armorData = await fetchPlayerArmor(db, armorId);
+          console.log('Armor Data:', armorData);
+
+          // Invoke the Rust function with armor data
+          await invoke('calculate_damage_taken', { armor_data: armorData, damage: 42.1, player_stats: playerStats });
+        } else {
+          console.error('Armor ID is undefined');
+        }
+
+        console.log(`Loading character with ID: ${selectedCharacter}`);
+      } catch (error) {
+        console.error('Error loading character:', error);
+      }
     }
   };
 

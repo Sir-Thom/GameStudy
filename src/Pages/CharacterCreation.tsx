@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ClassType } from '../Interfaces/ClassType';
-import { Player } from '../Interfaces/Player';
+import { ExtendedPlayer, Player } from '../Interfaces/Player';
 import { Classes } from '../Interfaces/Classes';
 import { DefaultWarriorClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';
@@ -16,6 +16,8 @@ import {
   insertPlayer,
   insertPlayerStats,
   insertPlayerInventory,
+  fetchPlayerArmor,
+  fetchPlayerStats,
 } from '../utils/dbUtils';
 
 const CharacterCreationPage: React.FC = () => {
@@ -24,8 +26,9 @@ const CharacterCreationPage: React.FC = () => {
   const [armor, setArmor] = useState<Armor[]>([]);
   const [Classes, setClasses] = useState<Classes[]>([]);
 
-  const [characterData, setCharacterData] = useState<Player>({
+  const [characterData, setCharacterData] = useState<ExtendedPlayer>({
     name: '',
+    id: 0,
     level: 1,
     class_name: ClassType.Warrior,
     hp: 100,
@@ -65,19 +68,21 @@ const CharacterCreationPage: React.FC = () => {
         class_data: JSON.stringify({
           ...classData,
           base_stats: JSON.parse(classData.base_stats),
+          // Exclude player_id if not required
         }),
       });
       console.log('Character Data:', characterData);
       console.log('Class Data:', classData);
 
       if (result) {
-        const updatedCharacter: Player = result as Player;
+        const updatedCharacter: ExtendedPlayer = result as ExtendedPlayer;
         setCharacterData((prevData) => ({ ...prevData, ...updatedCharacter }));
         let playerId = await insertPlayer(db, updatedCharacter).then((id) => id);
         insertPlayerStats(db, playerId, updatedCharacter.class_name);
         const inventoryId = await insertPlayerInventory(db, playerId);
         await (await db).execute('UPDATE players SET inventory_id = ? WHERE id = ?', [inventoryId, playerId]);
-
+        const armorData = await fetchPlayerArmor(db, updatedCharacter.armor_id);
+        console.log('Armor Data:', armorData);
         console.log('Character successfully created and saved to the database.');
       } else {
         console.error('Failed to create character');
