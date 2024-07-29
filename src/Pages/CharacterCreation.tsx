@@ -6,10 +6,17 @@ import { DefaultWarriorClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import PortraitSelection from '../components/CharacterCreation/PortraitViewer';
-import Inventory from '../components/Character/Inventory';
+
 import { Armor } from '../Interfaces/Armor';
 import { Weapon } from '../Interfaces/Weapon';
-import { fetchClasses, fetchArmor, fetchWeapons } from '../utils/dbUtils';
+import {
+  fetchClasses,
+  fetchArmor,
+  fetchWeapons,
+  insertPlayer,
+  insertPlayerStats,
+  insertPlayerInventory,
+} from '../utils/dbUtils';
 
 const CharacterCreationPage: React.FC = () => {
   const db = Database.load('sqlite:character.db');
@@ -23,7 +30,7 @@ const CharacterCreationPage: React.FC = () => {
     class_name: ClassType.Warrior,
     hp: 100,
     skills: [],
-    inventory: [],
+    inventory_id: 0,
     gold: 0,
     experience: 0,
     next_level_exp: 100,
@@ -65,49 +72,11 @@ const CharacterCreationPage: React.FC = () => {
 
       if (result) {
         const updatedCharacter: Player = result as Player;
-        setCharacterData(updatedCharacter);
-
-        const database = await db;
-        const insertResult = await database.execute(
-          `
-            INSERT INTO players (name, level, class_name, hp, skills, inventory, gold, experience, next_level_exp, current_exp, image, weapon_id, armor_id, accessory)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `,
-          [
-            updatedCharacter.name,
-            updatedCharacter.level,
-            updatedCharacter.class_name,
-            updatedCharacter.hp,
-            JSON.stringify(updatedCharacter.skills),
-            JSON.stringify(updatedCharacter.inventory),
-            updatedCharacter.gold,
-            updatedCharacter.experience,
-            updatedCharacter.next_level_exp,
-            updatedCharacter.current_exp,
-            updatedCharacter.image,
-            updatedCharacter.weapon_id,
-            updatedCharacter.armor_id,
-            updatedCharacter.accessory,
-          ],
-        );
-
-        const playerId = insertResult.lastInsertId;
-        console.log('New player ID:', playerId);
-
-        await database.execute(
-          `
-            INSERT INTO player_stats (player_id, strength, dexterity, intelligence, constitution, luck)
-            SELECT ?, 
-                   CAST(json_extract(base_stats, '$.strength') AS INTEGER), 
-                   CAST(json_extract(base_stats, '$.dexterity') AS INTEGER), 
-                   CAST(json_extract(base_stats, '$.intelligence') AS INTEGER), 
-                   CAST(json_extract(base_stats, '$.constitution') AS INTEGER), 
-                   CAST(json_extract(base_stats, '$.luck') AS INTEGER)
-            FROM classes
-            WHERE name = ?
-          `,
-          [playerId, updatedCharacter.class_name],
-        );
+        setCharacterData((prevData) => ({ ...prevData, ...updatedCharacter }));
+        let playerId = await insertPlayer(db, updatedCharacter).then((id) => id);
+        insertPlayerStats(db, playerId, updatedCharacter.class_name);
+        const inventoryId = await insertPlayerInventory(db, playerId);
+        await (await db).execute('UPDATE players SET inventory_id = ? WHERE id = ?', [inventoryId, playerId]);
 
         console.log('Character successfully created and saved to the database.');
       } else {
@@ -186,13 +155,7 @@ const CharacterCreationPage: React.FC = () => {
           </select>
         </div>
         <PortraitSelection selectedPortrait={characterData.image} onSelect={handlePortraitSelect} />
-        <Inventory
-          character={characterData}
-          weapons={weapons}
-          onEquipWeapon={(weaponId: number) => setCharacterData((prevData) => ({ ...prevData, weapon_id: weaponId }))}
-          onUnequipWeapon={() => setCharacterData((prevData) => ({ ...prevData, weapon_id: 0 }))}
-          onUseItem={(itemName: string) => console.log('Using item:', itemName)}
-        />
+
         {/* Submit Button */}
         <div>
           <button type="submit">Create Character</button>

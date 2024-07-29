@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS players (
     class_name TEXT NOT NULL,
     hp INTEGER NOT NULL,
     skills TEXT,
-    inventory TEXT,
+    inventory_id INTEGER,
     gold INTEGER NOT NULL DEFAULT 0,
     experience INTEGER NOT NULL DEFAULT 0,
     next_level_exp INTEGER NOT NULL DEFAULT 100,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS players (
     weapon_id INTEGER REFERENCES weapons(id),  
     armor_id INTEGER REFERENCES armor(id),
     accessory TEXT,
-    FOREIGN KEY (class_name) REFERENCES classes(name)
+    FOREIGN KEY (class_name) REFERENCES classes(name)    
 );
 
 CREATE TABLE IF NOT EXISTS classes (
@@ -92,6 +92,14 @@ CREATE TABLE IF NOT EXISTS weapons (
     base_damage INTEGER NOT NULL,
     defense_provided INTEGER,
     description TEXT
+);
+
+CREATE TABLE IF NOT EXISTS inventory (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER NOT NULL,
+    item_id INTEGER ,
+    quantity INTEGER  DEFAULT NULL,
+    FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
 INSERT OR IGNORE INTO classes (name, base_stats, skills, fire_resistance, magic_resistance, frost_resistance, lightning_resistance) VALUES
