@@ -124,3 +124,36 @@ export const fetchPlayerInventory = async (db: Promise<Database>, playerId: numb
     throw error;
   }
 }
+
+export const fetchPlayerArmor = async (db: Promise<Database>, armorId: number): Promise<string> => {
+  try {
+    const database = await db;
+    console.log('Armor ID:', armorId);
+    const Armor_data:Armor =  await database.select('SELECT * FROM armor WHERE id = $1', [armorId]);
+    return JSON.stringify(Armor_data);
+  } catch (error) {
+    console.error('Error fetching player armor:', error);
+    throw error;
+  }
+}
+
+export const fetchPlayerStats = async (db: Promise<Database>, playerId: number): Promise<string> => {
+  try {
+    const database = await db;
+    const playerStats = await database.select('SELECT * FROM player_stats WHERE player_id = $1', [playerId]);
+    return JSON.stringify(playerStats);
+  } catch (error) {
+    console.error('Error fetching player stats:', error);
+    throw error;
+  }
+}
+
+export const fetchPlayer = async (db: Promise<Database>, playerId: number): Promise<ExtendedPlayer> => {
+  try {
+    const database = await db;
+    return await database.select('SELECT * FROM players WHERE id = $1', [playerId]);
+  } catch (error) {
+    console.error('Error fetching player:', error);
+    throw error;
+  }
+}

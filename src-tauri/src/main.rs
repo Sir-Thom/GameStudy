@@ -6,7 +6,7 @@ mod armor;
 mod enemies;
 mod player;
 mod weapon;
-use player::create_character;
+use player::{calculate_damage_taken, create_character, get_player_armor, get_player_stats};
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -111,7 +111,7 @@ INSERT OR IGNORE INTO classes (name, base_stats, skills, fire_resistance, magic_
     ('Archer', '{\"strength\": 5, \"dexterity\": 8, \"intelligence\": 4, \"constitution\": 5, \"luck\": 5}', '[\"Precision Shot\", \"Evasive Maneuvers\", \"Marksmanship\"]', 0.05, 0.1, 0.1, 0.1),
     ('Rogue', '{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]', 0.05, 0.1, 0.1, 0.15);
 
-INSERT OR IGNORE INTO weapons (name, type, damage_type, base_damage, defense_provided, description) VALUES
+INSERT OR IGNORE INTO weapons (name, weapon_type, damage_type, base_damage, defense_provided, description) VALUES
     ('Rusty Sword and Wooden Shield', 'SwordAndShield', 'Physical', 25, 30, 'A rusty sword and a wooden shield.'),
     ('Iron Dagger', 'Dagger', 'Physical', 18, NULL, 'A sharp iron dagger for quick strikes.'),
     ('Longbow', 'Bow', 'Physical', 22, NULL, 'A longbow for long-range attacks.'),
@@ -149,7 +149,12 @@ INSERT OR IGNORE INTO armor (name, picture, defense_stat, special_ability, speci
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![greet])
-        .invoke_handler(tauri::generate_handler![create_character])
+        .invoke_handler(tauri::generate_handler![
+            create_character,
+            get_player_armor,
+            get_player_stats,
+            calculate_damage_taken
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

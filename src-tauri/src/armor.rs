@@ -1,8 +1,12 @@
 pub mod armor_info;
-use crate::player::stats::Stats;
+use crate::player::stats::{PlayerStats, Stats};
 use armor_info::Armor;
 
-pub fn calculate_damage_reduction(armor: &Armor, incoming_damage: f32, player_stats: Stats) -> f32 {
+pub fn calculate_damage_reduction(
+    armor: &Armor,
+    incoming_damage: f32,
+    player_stats: &&PlayerStats,
+) -> f32 {
     let base_reduction = armor.defense_stat as f32;
 
     let strength_reduction = armor.strength_scaling.unwrap_or(0.0) * player_stats.strength as f32;
@@ -36,11 +40,40 @@ pub fn calculate_damage_reduction(armor: &Armor, incoming_damage: f32, player_st
     }
 }
 
+pub fn get_damage_reduction(armor: &Armor, player_stats: Stats) -> f32 {
+    let base_reduction = armor.defense_stat as f32;
+
+    let strength_reduction = armor.strength_scaling.unwrap_or(0.0) * player_stats.strength as f32;
+    let dexterity_reduction =
+        armor.dexterity_scaling.unwrap_or(0.0) * player_stats.dexterity as f32;
+    let intelligence_reduction =
+        armor.intelligence_scaling.unwrap_or(0.0) * player_stats.intelligence as f32;
+    let constitution_reduction =
+        armor.constitution_scaling.unwrap_or(0.0) * player_stats.constitution as f32;
+    let luck_reduction = armor.luck_scaling.unwrap_or(0.0) * player_stats.luck as f32;
+
+    let total_scaling_reduction = strength_reduction
+        + dexterity_reduction
+        + intelligence_reduction
+        + constitution_reduction
+        + luck_reduction;
+    let total_reduction = base_reduction + total_scaling_reduction;
+
+    let special_reduction = match armor.ability_type.as_deref() {
+        Some("defense") => armor.special_ability.unwrap_or(0.0),
+        _ => 0.0,
+    };
+
+    let final_reduction = total_reduction + special_reduction;
+
+    final_reduction
+}
+
 #[tauri::command]
 pub fn calculate_damage_reduction_command(
     armor_data: String,
     incoming_damage: f32,
-    player_stats: Stats,
+    player_stats: &&PlayerStats,
 ) -> f32 {
     let armor: Armor = serde_json::from_str(&armor_data).unwrap();
     calculate_damage_reduction(&armor, incoming_damage, player_stats)
