@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { ClassType } from '../Interfaces/ClassType';
-import { ExtendedPlayer, Player } from '../Interfaces/Player';
+import { ExtendedPlayer } from '../Interfaces/Player';
 import { Classes } from '../Interfaces/Classes';
 import { DefaultWarriorClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import PortraitSelection from '../components/CharacterCreation/PortraitViewer';
-
+import { FpsView } from 'react-fps';
 import { Armor } from '../Interfaces/Armor';
 import { Weapon } from '../Interfaces/Weapon';
 import {
@@ -17,7 +17,6 @@ import {
   insertPlayerStats,
   insertPlayerInventory,
   fetchPlayerArmor,
-  fetchPlayerStats,
 } from '../utils/dbUtils';
 
 const CharacterCreationPage: React.FC = () => {
@@ -111,6 +110,7 @@ const CharacterCreationPage: React.FC = () => {
 
   return (
     <div className="character-creation-page">
+      <FpsView width={240} height={180} left={60} top={80} />
       <h1>Create Your Character</h1>
       <form onSubmit={handleSubmit}>
         {/* Character Name Input */}
