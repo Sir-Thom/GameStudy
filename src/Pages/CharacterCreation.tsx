@@ -6,7 +6,7 @@ import { DefaultWarriorClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';
 import Database from '@tauri-apps/plugin-sql';
 import PortraitSelection from '../components/CharacterCreation/PortraitViewer';
-import { FpsView } from 'react-fps';
+
 import { Armor } from '../Interfaces/Armor';
 import { Weapon } from '../Interfaces/Weapon';
 import {
@@ -110,7 +110,6 @@ const CharacterCreationPage: React.FC = () => {
 
   return (
     <div className="character-creation-page">
-      <FpsView width={240} height={180} left={60} top={80} />
       <h1>Create Your Character</h1>
       <form onSubmit={handleSubmit}>
         {/* Character Name Input */}
