@@ -5,6 +5,22 @@
 .logo.vite:hover {
   filter: drop-shadow(0 0 2em #747bff);
 }
+.inventory, .equipment {
+  display: flex;
+  flex-wrap: wrap;
+  border: 1px solid #ccc;
+  padding: 16px;
+  width: 300px;
+  min-height: 400px;
+}
+
+.draggable-item {
+  padding: 8px;
+  margin: 4px;
+  background: #e2e2e2;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafb);

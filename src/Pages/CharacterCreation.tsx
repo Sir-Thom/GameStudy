@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ClassType } from '../Interfaces/ClassType';
-import { ExtendedPlayer, Player } from '../Interfaces/Player';
+import { ExtendedPlayer } from '../Interfaces/Player';
 import { Classes } from '../Interfaces/Classes';
 import { DefaultWarriorClass } from '../utils/Classes';
 import { invoke } from '@tauri-apps/api/core';
@@ -17,7 +17,6 @@ import {
   insertPlayerStats,
   insertPlayerInventory,
   fetchPlayerArmor,
-  fetchPlayerStats,
 } from '../utils/dbUtils';
 
 const CharacterCreationPage: React.FC = () => {

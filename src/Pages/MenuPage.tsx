@@ -5,6 +5,9 @@ import { ExtendedPlayer } from '../Interfaces/Player';
 import { fetchCharacters, fetchPlayer, fetchPlayerArmor, fetchPlayerStats } from '../utils/dbUtils';
 import { invoke } from '@tauri-apps/api/core';
 
+import '../App.css';
+import Inventory from '../components/Inventory/inventory';
+
 const MainMenu: React.FC = () => {
   const [characters, setCharacters] = useState<ExtendedPlayer[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);
@@ -23,7 +26,7 @@ const MainMenu: React.FC = () => {
     if (selectedCharacter !== null) {
       try {
         // Fetch the player data
-        const playerArray = await fetchPlayer(db, selectedCharacter);
+        const playerArray = (await fetchPlayer(db, selectedCharacter)) as unknown as ExtendedPlayer[];
         const player = playerArray[0]; // Access the first element if it's an array
         console.log('Player Data:', player);
 
@@ -91,6 +94,7 @@ const MainMenu: React.FC = () => {
           </button>
         </Link>
       </div>
+      <Inventory />
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-semibold text-blue-700 mb-4">Load Character</h2>
         <select
