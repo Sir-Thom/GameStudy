@@ -1,5 +1,5 @@
 import { CharacterClass } from '../Interfaces/CharacterClass';
-import { ClassType } from '../Interfaces/ClassType';
+import { ClassType } from '../types/ClassType';
 
 export const DefaultWarriorClass: CharacterClass = {
   name: ClassType.Warrior,

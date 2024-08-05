@@ -17,3 +17,11 @@ pub struct PlayerStats {
     pub constitution: u32,
     pub luck: u32,
 }
+#[derive(Serialize, Deserialize, Debug)]
+pub struct PlayerResistances {
+    pub player_id: u32,
+    pub fire_resistance: f32,
+    pub magic_resistance: f32,
+    pub frost_resistance: f32,
+    pub lightning_resistance: f32,
+}

@@ -2,7 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Database from '@tauri-apps/plugin-sql';
 import { ExtendedPlayer } from '../Interfaces/Player';
-import { fetchCharacters, fetchPlayer, fetchPlayerArmor, fetchPlayerStats } from '../utils/dbUtils';
+import {
+  fetchCharacters,
+  fetchEnemies,
+  fetchEnemy,
+  fetchPlayer,
+  fetchPlayerArmor,
+  fetchPlayerResistances,
+  fetchPlayerStats,
+} from '../utils/dbUtils';
 import { invoke } from '@tauri-apps/api/core';
 import Inventory from '../components/Inventory/inventory';
 
@@ -45,9 +53,24 @@ const MainMenu: React.FC = () => {
           console.error('Player stats are empty');
           return;
         }
+        const playerResistances = await fetchPlayerResistances(db, playerId);
+        console.log('Player Resistances:', JSON.stringify(playerResistances));
+        let enemy = await fetchEnemy(db, 1);
 
         // Invoke the Rust function with player stats
         await invoke('get_player_stats', { player_stats: playerStats });
+        console.log('Player Stats:', JSON.parse(playerStats));
+        const enemy_dmg = await invoke('get_enemy_damage', {
+          enemy_data: enemy,
+          player_resistances: JSON.stringify(playerResistances),
+          player_level: player.level,
+        });
+        console.log('player level', player.level);
+        const playerHp = await invoke('get_player_hp', {
+          constitution: JSON.parse(playerStats)[0].constitution,
+          level: player.level,
+        });
+        console.log('Player HP:', playerHp);
 
         // Fetch armor data
         if (armorId !== undefined && armorId !== null) {
@@ -55,7 +78,12 @@ const MainMenu: React.FC = () => {
           console.log('Armor Data:', armorData);
 
           // Invoke the Rust function with armor data
-          await invoke('calculate_damage_taken', { armor_data: armorData, damage: 42.1, player_stats: playerStats });
+          let damageTaken = await invoke('calculate_damage_taken', {
+            armor_data: armorData,
+            damage: enemy_dmg,
+            player_stats: playerStats,
+          });
+          console.log('Damage Taken:', damageTaken);
         } else {
           console.error('Armor ID is undefined');
         }

@@ -51,6 +51,15 @@ pub fn get_player_stats(player_stats: String) -> Result<(), String> {
 }
 
 #[tauri::command(rename_all = "snake_case")]
+pub fn get_player_resistances(player_resistances: String) -> Result<(), String> {
+    println!("player_resistances: {:?}", player_resistances);
+    let resistances_list: Vec<PlayerStats> = serde_json::from_str(&player_resistances)
+        .map_err(|e| format!("Failed to parse player resistances: {}", e))?;
+    println!("Parsed player resistances: {:?}", resistances_list);
+    Ok(())
+}
+
+#[tauri::command(rename_all = "snake_case")]
 pub fn calculate_damage_taken(
     armor_data: String,
     damage: f32,
@@ -88,6 +97,12 @@ pub fn create_character(character_data: String, class_data: String) -> Result<Pl
     println!("character hp: {:?}", character.hp);
     println!("Updated character with HP: {:?}", character);
     Ok(character)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn get_player_hp(constitution: u32, level: u32) -> Result<u32, String> {
+    let hp = calculate_hp(constitution, level)?;
+    Ok(hp)
 }
 
 #[cfg(test)]
