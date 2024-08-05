@@ -5,12 +5,13 @@ import { DraggableItem } from './DraggableItem';
 import { SortableSlot } from './SortableSlot';
 import { Equipment } from './Equipment';
 import { Item } from '../../types/Item';
+import { ItemTypes } from '../../types/ItemTypes';
 
 const initialItems: Item[] = [
-  { id: '1', name: 'Sword', image: 'path/to/sword.png', type: 'inventory' },
-  { id: '2', name: 'Shield', image: 'path/to/shield.png', type: 'inventory' },
-  { id: 'equipement-3', name: 'Helmet', image: 'path/to/helmet.png', type: 'equipment' },
-  { id: '4', name: 'Potion', image: 'path/to/potion.png', type: 'inventory' },
+  { id: `${ItemTypes.Weapon}-1`, name: 'Sword', image: 'path/to/sword.png', type: ItemTypes.Weapon },
+  { id: '2', name: 'Shield', image: 'path/to/shield.png', type: ItemTypes.Inventory },
+  { id: `${ItemTypes.Equipment}-3`, name: 'Helmet', image: 'src/assets/portrait/50.png', type: ItemTypes.Equipment },
+  { id: '4', name: 'Potion', image: 'path/to/potion.png', type: ItemTypes.Inventory },
 ];
 
 const totalInventorySlots = 20;
@@ -25,7 +26,6 @@ const Inventory: React.FC = () => {
     helmet: null,
     armor: null,
     weapon: null,
-    shield: null,
     accessory: null,
   });
   const [activeId, setActiveId] = React.useState<string | null>(null);

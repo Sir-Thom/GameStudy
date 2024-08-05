@@ -85,13 +85,17 @@ export const insertPlayerStats = async (db: Promise<Database>, playerId: number,
     const database = await db;
     await database.execute(
       `
-        INSERT INTO player_stats (player_id, strength, dexterity, intelligence, constitution, luck)
+        INSERT INTO player_stats (player_id, strength, dexterity, intelligence, constitution, luck, fire_resistance, magic_resistance, frost_resistance, lightning_resistance)
         SELECT ?, 
                CAST(json_extract(base_stats, '$.strength') AS INTEGER), 
                CAST(json_extract(base_stats, '$.dexterity') AS INTEGER), 
                CAST(json_extract(base_stats, '$.intelligence') AS INTEGER), 
                CAST(json_extract(base_stats, '$.constitution') AS INTEGER), 
-               CAST(json_extract(base_stats, '$.luck') AS INTEGER)
+               CAST(json_extract(base_stats, '$.luck') AS INTEGER),
+               fire_resistance,
+               magic_resistance,
+               frost_resistance,
+               lightning_resistance
         FROM classes
         WHERE name = ?
       `,
@@ -102,6 +106,17 @@ export const insertPlayerStats = async (db: Promise<Database>, playerId: number,
     throw error;
   }
 };
+
+export const fetchPlayerResistances = async (db: Promise<Database>, playerId: number): Promise<string> => {
+  try {
+    const database = await db;
+    return database.select('SELECT player_id,fire_resistance,magic_resistance,frost_resistance,lightning_resistance FROM player_stats WHERE player_id = $1', [playerId]);
+  } catch (error) {
+    console.error('Error fetching player resistances:', error);
+    throw error;
+  }
+}
+
 
 export const insertPlayerInventory = async (db: Promise<Database>, playerId: number): Promise<number | null> => {
   try {
@@ -154,6 +169,39 @@ export const fetchPlayer = async (db: Promise<Database>, playerId: number): Prom
     return await database.select('SELECT * FROM players WHERE id = $1', [playerId]);
   } catch (error) {
     console.error('Error fetching player:', error);
+    throw error;
+  }
+}
+
+export const fetchEnemies = async (db: Promise<Database>): Promise<string> => {
+  try {
+    const database = await db;
+    const enemies = await database.select('SELECT * FROM enemies');
+    return JSON.stringify(enemies);
+  } catch (error) {
+    console.error('Error fetching enemies:', error);
+    throw error;
+  }
+}
+
+export const fetchEnemy = async (db: Promise<Database>, enemyId: number): Promise<string> => {
+  try {
+    const database = await db;
+    const enemy = await database.select('SELECT * FROM enemies WHERE id = $1', [enemyId]);
+    return JSON.stringify(enemy);
+  } catch (error) {
+    console.error('Error fetching enemy:', error);
+    throw error;
+  }
+}
+
+export const fetchPlayerHp = async (db: Promise<Database>, playerId: number): Promise<number> => {
+  try {
+    const database = await db;
+    const player = await database.select('SELECT hp FROM players WHERE id = $1', [playerId]);
+    return player[0].hp;
+  } catch (error) {
+    console.error('Error fetching player HP:', error);
     throw error;
   }
 }

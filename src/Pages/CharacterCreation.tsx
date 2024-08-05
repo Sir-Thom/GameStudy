@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ClassType } from '../Interfaces/ClassType';
+import { ClassType } from '../types/ClassType';
 import { ExtendedPlayer } from '../Interfaces/Player';
 import { Classes } from '../Interfaces/Classes';
 import { DefaultWarriorClass } from '../utils/Classes';
@@ -67,6 +67,7 @@ const CharacterCreationPage: React.FC = () => {
         class_data: JSON.stringify({
           ...classData,
           base_stats: JSON.parse(classData.base_stats),
+          
           // Exclude player_id if not required
         }),
       });

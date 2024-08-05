@@ -6,7 +6,12 @@ mod armor;
 mod enemies;
 mod player;
 mod weapon;
-use player::{calculate_damage_taken, create_character, get_player_armor, get_player_stats};
+
+use enemies::get_enemy_damage;
+use player::{
+    calculate_damage_taken, create_character, get_player_armor, get_player_hp,
+    get_player_resistances, get_player_stats,
+};
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -33,10 +38,10 @@ CREATE TABLE IF NOT EXISTS players (
     next_level_exp INTEGER NOT NULL DEFAULT 100,
     current_exp INTEGER NOT NULL DEFAULT 0,
     image TEXT,
-    weapon_id INTEGER REFERENCES weapons(id),  
+    weapon_id INTEGER REFERENCES weapons(id),
     armor_id INTEGER REFERENCES armor(id),
     accessory TEXT,
-    FOREIGN KEY (class_name) REFERENCES classes(name)    
+    FOREIGN KEY (class_name) REFERENCES classes(name)
 );
 
 CREATE TABLE IF NOT EXISTS classes (
@@ -50,6 +55,7 @@ CREATE TABLE IF NOT EXISTS classes (
     lightning_resistance REAL DEFAULT 0.0
 );
 
+
 CREATE TABLE IF NOT EXISTS player_stats (
     player_id INTEGER PRIMARY KEY,
     strength INTEGER NOT NULL,
@@ -57,6 +63,10 @@ CREATE TABLE IF NOT EXISTS player_stats (
     intelligence INTEGER NOT NULL,
     constitution INTEGER NOT NULL,
     luck INTEGER NOT NULL,
+    fire_resistance REAL DEFAULT 0.0,
+    magic_resistance REAL DEFAULT 0.0,
+    frost_resistance REAL DEFAULT 0.0,
+    lightning_resistance REAL DEFAULT 0.0,
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
@@ -80,11 +90,19 @@ CREATE TABLE IF NOT EXISTS enemies (
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     hp INTEGER NOT NULL,
-    attack INTEGER NOT NULL,
+    base_attack INTEGER NOT NULL,
+    fire_attack INTEGER DEFAULT 0,
+    lightning_attack INTEGER DEFAULT 0,
+    magic_attack INTEGER DEFAULT 0,
+    frost_attack INTEGER DEFAULT 0,
+    damage_scaling REAL DEFAULT 0.0,
+    base_damage_negation REAL DEFAULT 0.0,
     defense INTEGER NOT NULL,
     abilities TEXT,
     image TEXT,
-    experience_reward INTEGER NOT NULL
+    experience_reward INTEGER NOT NULL,
+    gold_reward INTEGER NOT NULL,
+    attack_type TEXT DEFAULT 'flat' 
 );
 
 CREATE TABLE IF NOT EXISTS weapons (
@@ -100,8 +118,8 @@ CREATE TABLE IF NOT EXISTS weapons (
 CREATE TABLE IF NOT EXISTS inventory (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id INTEGER NOT NULL,
-    item_id INTEGER ,
-    quantity INTEGER  DEFAULT NULL,
+    item_id INTEGER,
+    quantity INTEGER DEFAULT 1,
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
@@ -120,23 +138,28 @@ INSERT OR IGNORE INTO weapons (name, weapon_type, damage_type, base_damage, defe
     ('Steel Dagger', 'Dagger', 'Physical', 15, NULL, 'A sharp steel dagger for quick strikes.'),
     ('Ice Wand', 'Wand', 'Ice', 16, NULL, 'A wand that freezes enemies on contact.');
 
-INSERT OR IGNORE INTO enemies (name, type, hp, attack, defense, abilities, image, experience_reward) VALUES
-    ('Goblin', 'Creature', 30, 5, 2, '[\"Slash\", \"Quick Attack\"]', 'goblin.png', 10),
-    ('Orc', 'Creature', 60, 10, 8, '[\"Smash\", \"Charge\"]', 'orc.png', 25),
-    ('Skeleton Warrior', 'Undead', 45, 7, 4, '[\"Bone Shield\", \"Rattle Strike\"]', 'skeleton_warrior.png', 20),
-    ('Dark Mage', 'Mage', 40, 8, 3, '[\"Fireball\", \"Dark Barrier\"]', 'dark_mage.png', 30),
-    ('Dragon', 'Dragon', 120, 20, 15, '[\"Fire Breath\", \"Tail Swipe\"]', 'dragon.png', 50),
-    ('Golem', 'Construct', 80, 12, 12, '[\"Rock Slam\", \"Earthquake\"]', 'golem.png', 40),
-    ('Vampire Bat', 'Creature', 25, 6, 2, '[\"Bite\", \"Screech\"]', 'vampire_bat.png', 15),
-    ('Troll', 'Creature', 70, 15, 10, '[\"Club Smash\", \"Regenerate\"]', 'troll.png', 35);
-
 INSERT OR IGNORE INTO armor (name, picture, defense_stat, special_ability, special_ability_value, description, strength_scaling, dexterity_scaling, intelligence_scaling, constitution_scaling, luck_scaling) VALUES
-    ('Iron Armor', 'iron_armor.png', 40, NULL, NULL, 'Standard iron armor offering decent protection.', 0.05, 0, 0, 0.1, 0),
-    ('Steel Armor', 'steel_armor.png', 60, NULL, NULL, 'Sturdy steel armor with high defense.', 0.1, 0, 0, 0.15, 0),
-    ('Mage Robes', 'mage_robes.png', 10, 'attack', 0.15, 'Robes that increase magic damage by 15%.', 0, 0, 0.2, 0, 0),
-    ('Leather Armor', 'leather_armor.png', 25, NULL, NULL, 'Light and flexible leather armor.', 0, 0.1, 0, 0, 0.05),
-    ('Dragon Scale Armor', 'dragon_scale_armor.png', 80, 'defense', 0.10, 'Armor made from dragon scales, increasing defense and providing a 10% damage reduction.', 0.2, 0, 0, 0.3, 0.1);
-            ",
+    ('Iron Armor', 'iron_armor.png', 15, NULL, NULL, 'Standard iron armor offering decent protection.', 0.02, 0, 0, 0.05, 0),
+    ('Steel Armor', 'steel_armor.png', 25, NULL, NULL, 'Sturdy steel armor with high defense.', 0.05, 0, 0, 0.1, 0),
+    ('Mage Robes', 'mage_robes.png', 10, 'attack', 0.05, 'Robes that increase magic damage by 5%.', 0, 0, 0.1, 0, 0),
+    ('Leather Armor', 'leather_armor.png', 10, NULL, NULL, 'Light and flexible leather armor.', 0, 0.05, 0, 0, 0.02),
+    ('Dragon Scale Armor', 'dragon_scale_armor.png', 40, 'defense', 0.05, 'Armor made from dragon scales, increasing defense and providing a 5% damage reduction.', 0.1, 0, 0, 0.2, 0.05);
+
+INSERT OR IGNORE INTO enemies (name, type, hp, base_attack, fire_attack, lightning_attack, magic_attack, frost_attack, damage_scaling, base_damage_negation, defense, abilities, image, experience_reward, gold_reward, attack_type) VALUES
+    ('Goblin', 'Creature', 30, 10, 0, 0, 0, 0, 0.1, 0.1, 2, '[\"Slash\", \"Quick Attack\"]', 'goblin.png', 10, 5, 'flat'),
+    ('Orc', 'Creature', 60, 15, 0, 0, 0, 0, 0.2, 0.2, 8, '[\"Smash\", \"Charge\"]', 'orc.png', 25, 15, 'flat'),
+    ('Skeleton Warrior', 'Undead', 45, 12, 0, 0, 0, 0, 0.15, 0.15, 4, '[\"Bone Shield\", \"Rattle Strike\"]', 'skeleton_warrior.png', 20, 10, 'flat'),
+    ('Dark Mage', 'Mage', 40, 5, 0, 0, 20, 0, 0.25, 0.2, 3, '[\"Fireball\", \"Dark Barrier\"]', 'dark_mage.png', 30, 20, 'magic'),
+    ('Dragon', 'Dragon', 120, 25, 15, 10, 12, 10, 0.3, 0.25, 15, '[\"Fire Breath\", \"Tail Swipe\"]', 'dragon.png', 50, 50, 'fire'),
+    ('Golem', 'Construct', 80, 20, 0, 0, 0, 0, 0.2, 0.2, 12, '[\"Rock Slam\", \"Earthquake\"]', 'golem.png', 40, 25, 'flat'),
+    ('Vampire Bat', 'Creature', 25, 8, 0, 0, 0, 0, 0.1, 0.1, 2, '[\"Bite\", \"Screech\"]', 'vampire_bat.png', 15, 8, 'flat'),
+    ('Troll', 'Creature', 70, 18, 0, 0, 0, 0, 0.2, 0.2, 10, '[\"Club Smash\", \"Regenerate\"]', 'troll.png', 35, 20, 'flat'),
+    ('Goblin Warrior', 'Creature', 40, 15, 0, 0, 0, 0, 0.1, 0.1, 5, '[\"Charge\", \"Stomp\"]', 'goblin_warrior.png', 20, 10, 'flat'),
+    ('Shadow Assassin', 'Undead', 50, 20, 0, 0, 0, 0, 0.2, 0.15, 6, '[\"Backstab\", \"Shadow Strike\"]', 'shadow_assassin.png', 25, 15, 'flat'),
+    ('Fire Demon', 'Demon', 80, 25, 15, 0, 0, 0, 0.3, 0.2, 8, '[\"Fire Claw\", \"Inferno\"]', 'fire_demon.png', 40, 20, 'fire'),
+    ('Frost Giant', 'Giant', 100, 30, 0, 0, 0, 20, 0.25, 0.25, 10, '[\"Ice Smash\", \"Frost Breath\"]', 'frost_giant.png', 50, 30, 'frost');
+
+",
             kind: MigrationKind::Up,
         }
     ];
@@ -153,7 +176,10 @@ INSERT OR IGNORE INTO armor (name, picture, defense_stat, special_ability, speci
             create_character,
             get_player_armor,
             get_player_stats,
-            calculate_damage_taken
+            calculate_damage_taken,
+            get_player_resistances,
+            get_enemy_damage,
+            get_player_hp
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
