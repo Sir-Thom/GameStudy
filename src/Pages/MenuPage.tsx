@@ -4,7 +4,6 @@ import Database from '@tauri-apps/plugin-sql';
 import { ExtendedPlayer } from '../Interfaces/Player';
 import {
   fetchCharacters,
-  fetchEnemies,
   fetchEnemy,
   fetchPlayer,
   fetchPlayerArmor,
@@ -27,13 +26,44 @@ const MainMenu: React.FC = () => {
   const handleCharacterSelect = (id: number) => {
     setSelectedCharacter(id);
   };
+  async function attackEnemy(damage: number) {
+    try {
+      let enemyArray = await fetchEnemy(db, 1);
+      let enemy = enemyArray[0];
+      console.log('Enemy Data:', enemy);
+
+      enemy.abilities = JSON.parse(enemy.abilities);
+      const enemyDataString = JSON.stringify(enemy);
+
+      console.log('Enemy Data String:', enemyDataString);
+
+      const response = await invoke('apply_damage_to_enemy', {
+        enemy_data: enemyDataString,
+        damage: damage,
+        player_level: 1,
+      });
+
+      const [updatedEnemyData, xpDrop, goldDrop] = response as [string, number, number];
+
+      console.log('Updated enemy data:', updatedEnemyData);
+      console.log('XP dropped:', xpDrop);
+      console.log('Gold dropped:', goldDrop);
+
+      if (xpDrop > 0 || goldDrop > 0) {
+        console.log('The enemy has been defeated. Handle loot collection.');
+      } else {
+        console.log('The enemy is still alive.');
+      }
+    } catch (error) {
+      console.error('Error attacking enemy:', error);
+    }
+  }
 
   const handleLoadCharacter = async () => {
     if (selectedCharacter !== null) {
       try {
-        // Fetch the player data
         const playerArray = (await fetchPlayer(db, selectedCharacter)) as unknown as ExtendedPlayer[];
-        const player = playerArray[0]; // Access the first element if it's an array
+        const player = playerArray[0];
         console.log('Player Data:', player);
 
         if (!player) {
@@ -44,24 +74,32 @@ const MainMenu: React.FC = () => {
         const playerId = player.id;
         const armorId = player.armor_id;
 
-        // Fetch player stats
         const playerStats = await fetchPlayerStats(db, playerId);
         console.log('Player Stats:', playerStats);
 
-        // Ensure playerStats is not empty and properly formatted
         if (playerStats === '[]') {
           console.error('Player stats are empty');
           return;
         }
         const playerResistances = await fetchPlayerResistances(db, playerId);
         console.log('Player Resistances:', JSON.stringify(playerResistances));
-        let enemy = await fetchEnemy(db, 1);
 
-        // Invoke the Rust function with player stats
+        let enemyArray = await fetchEnemy(db, 1);
+        if (!Array.isArray(enemyArray)) {
+          enemyArray = [enemyArray];
+        }
+
+        enemyArray = enemyArray.map((enemy) => ({
+          ...enemy,
+          abilities: JSON.parse(enemy.abilities),
+        }));
+
+        const enemyDataString = JSON.stringify(enemyArray);
+
         await invoke('get_player_stats', { player_stats: playerStats });
         console.log('Player Stats:', JSON.parse(playerStats));
         const enemy_dmg = await invoke('get_enemy_damage', {
-          enemy_data: enemy,
+          enemy_data: enemyDataString,
           player_resistances: JSON.stringify(playerResistances),
           player_level: player.level,
         });
@@ -72,12 +110,10 @@ const MainMenu: React.FC = () => {
         });
         console.log('Player HP:', playerHp);
 
-        // Fetch armor data
         if (armorId !== undefined && armorId !== null) {
           const armorData = await fetchPlayerArmor(db, armorId);
           console.log('Armor Data:', armorData);
 
-          // Invoke the Rust function with armor data
           let damageTaken = await invoke('calculate_damage_taken', {
             armor_data: armorData,
             damage: enemy_dmg,
@@ -119,6 +155,10 @@ const MainMenu: React.FC = () => {
             Settings
           </button>
         </Link>
+        <button
+          onClick={() => attackEnemy(30)}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out"
+        />
       </div>
       <Inventory />
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-6">

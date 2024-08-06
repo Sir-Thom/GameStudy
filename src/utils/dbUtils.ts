@@ -184,21 +184,22 @@ export const fetchEnemies = async (db: Promise<Database>): Promise<string> => {
   }
 }
 
-export const fetchEnemy = async (db: Promise<Database>, enemyId: number): Promise<string> => {
+export const fetchEnemy = async (db: Promise<Database>, enemyId: number): Promise<any[]> => {
   try {
     const database = await db;
-    const enemy = await database.select('SELECT * FROM enemies WHERE id = $1', [enemyId]);
-    return JSON.stringify(enemy);
+    const enemy: any[] = await database.select('SELECT * FROM enemies WHERE id = $1', [enemyId]);
+    return enemy; 
   } catch (error) {
     console.error('Error fetching enemy:', error);
     throw error;
   }
 }
 
+
 export const fetchPlayerHp = async (db: Promise<Database>, playerId: number): Promise<number> => {
   try {
     const database = await db;
-    const player = await database.select('SELECT hp FROM players WHERE id = $1', [playerId]);
+    const player: { hp: number }[] = await database.select('SELECT hp FROM players WHERE id = $1', [playerId]);
     return player[0].hp;
   } catch (error) {
     console.error('Error fetching player HP:', error);

@@ -12,6 +12,7 @@ pub struct Enemies {
     pub magic_attack: u32,
     pub frost_attack: u32,
     pub damage_scaling: f32,
+    pub abilities: Vec<String>,
     /*pub magic_defense: u32,
     pub fire_resistance: f32,
     pub magic_resistance: f32,
@@ -19,8 +20,22 @@ pub struct Enemies {
     pub lightning_resistance: f32,*/
     pub image: String,
     //pub difficulty: f32,
-    //pub base_xp: u32,
-    //pub base_gold: u32,
+    pub experience_reward: u32,
+    pub gold_reward: u32,
+}
+
+impl Enemies {
+    pub fn take_damage(&mut self, damage: f32) -> bool {
+        let new_hp = self.hp as f32 - damage;
+        self.hp = new_hp.max(0.0) as u32; // Ensure HP doesn't go below 0
+
+        if self.hp == 0 {
+            println!("Enemy {} has died.", self.name);
+            true // Enemy is dead
+        } else {
+            false // Enemy is still alive
+        }
+    }
 }
 
 pub fn calculate_enemy_damage(
@@ -44,4 +59,11 @@ pub fn calculate_enemy_damage(
     } else {
         total_damage
     }
+}
+
+pub fn calculate_enemy_drops(enemy: &Enemies, player_level: u32) -> (u32, u32) {
+    let xp_drop = (enemy.experience_reward as f32 * (1.0 + (player_level as f32 / 10.0))) as u32;
+    let gold_drop = (enemy.gold_reward as f32 * (1.0 + (player_level as f32 / 10.0))) as u32;
+
+    (xp_drop, gold_drop)
 }
