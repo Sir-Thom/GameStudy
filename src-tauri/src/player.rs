@@ -140,7 +140,6 @@ mod tests {
             "lightning_resistance": 2.5
         })
         .to_string();
-        println!("class_data: {:?}", class_data);
 
         let character_data = json!({
             "name": "Test Character",
@@ -148,7 +147,7 @@ mod tests {
             "class_name": "Test Class",
             "hp": 0,
             "skills": [],
-            "inventory": 0,
+            "inventory_id": 0,
             "gold": 0,
             "experience": 0,
             "next_level_exp": 0,
