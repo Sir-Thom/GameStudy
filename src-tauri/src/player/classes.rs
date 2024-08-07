@@ -10,4 +10,6 @@ pub struct Classes {
     pub magic_resistance: f32,
     pub frost_resistance: f32,
     pub lightning_resistance: f32,
+    pub starting_weapon_id: i32,
+    pub starting_armor_id: i32,
 }

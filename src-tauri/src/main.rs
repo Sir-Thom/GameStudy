@@ -52,7 +52,9 @@ CREATE TABLE IF NOT EXISTS classes (
     fire_resistance REAL DEFAULT 0.0,
     magic_resistance REAL DEFAULT 0.0,
     frost_resistance REAL DEFAULT 0.0,
-    lightning_resistance REAL DEFAULT 0.0
+    lightning_resistance REAL DEFAULT 0.0,
+    starting_weapon_id INTEGER REFERENCES weapons(id),
+    starting_armor_id INTEGER REFERENCES armor(id)
 );
 
 
@@ -123,12 +125,6 @@ CREATE TABLE IF NOT EXISTS inventory (
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
-INSERT OR IGNORE INTO classes (name, base_stats, skills, fire_resistance, magic_resistance, frost_resistance, lightning_resistance) VALUES
-    ('Warrior', '{\"strength\": 8, \"dexterity\": 4, \"intelligence\": 2, \"constitution\": 7, \"luck\": 3}', '[\"Sword Mastery\", \"Shield Bash\", \"Battle Cry\"]', 0.1, 0.05, 0.05, 0.1),
-    ('Mage', '{\"strength\": 3, \"dexterity\": 4, \"intelligence\": 9, \"constitution\": 5, \"luck\": 4}', '[\"Fireball\", \"Ice Barrier\", \"Teleport\"]', 0.2, 0.1, 0.15, 0.05),
-    ('Archer', '{\"strength\": 5, \"dexterity\": 8, \"intelligence\": 4, \"constitution\": 5, \"luck\": 5}', '[\"Precision Shot\", \"Evasive Maneuvers\", \"Marksmanship\"]', 0.05, 0.1, 0.1, 0.1),
-    ('Rogue', '{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]', 0.05, 0.1, 0.1, 0.15);
-
 INSERT OR IGNORE INTO weapons (name, weapon_type, damage_type, base_damage, defense_provided, description) VALUES
     ('Rusty Sword and Wooden Shield', 'SwordAndShield', 'Physical', 25, 30, 'A rusty sword and a wooden shield.'),
     ('Iron Dagger', 'Dagger', 'Physical', 18, NULL, 'A sharp iron dagger for quick strikes.'),
@@ -144,6 +140,12 @@ INSERT OR IGNORE INTO armor (name, picture, defense_stat, special_ability, speci
     ('Mage Robes', 'mage_robes.png', 10, 'attack', 0.05, 'Robes that increase magic damage by 5%.', 0, 0, 0.1, 0, 0),
     ('Leather Armor', 'leather_armor.png', 10, NULL, NULL, 'Light and flexible leather armor.', 0, 0.05, 0, 0, 0.02),
     ('Dragon Scale Armor', 'dragon_scale_armor.png', 40, 'defense', 0.05, 'Armor made from dragon scales, increasing defense and providing a 5% damage reduction.', 0.1, 0, 0, 0.2, 0.05);
+
+INSERT OR IGNORE INTO classes (name, base_stats, skills, fire_resistance, magic_resistance, frost_resistance, lightning_resistance, starting_weapon_id, starting_armor_id) VALUES
+    ('Warrior', '{\"strength\": 8, \"dexterity\": 4, \"intelligence\": 2, \"constitution\": 7, \"luck\": 3}', '[\"Sword Mastery\", \"Shield Bash\", \"Battle Cry\"]', 0.1, 0.05, 0.05, 0.1, 1, 1),
+    ('Mage', '{\"strength\": 3, \"dexterity\": 4, \"intelligence\": 9, \"constitution\": 5, \"luck\": 4}', '[\"Fireball\", \"Ice Barrier\", \"Teleport\"]', 0.2, 0.1, 0.15, 0.05, 5, 3),
+    ('Archer', '{\"strength\": 5, \"dexterity\": 8, \"intelligence\": 4, \"constitution\": 5, \"luck\": 5}', '[\"Precision Shot\", \"Evasive Maneuvers\", \"Marksmanship\"]', 0.05, 0.1, 0.1, 0.1, 3, 4),
+    ('Rogue', '{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]', 0.05, 0.1, 0.1, 0.15, 6, 4);
 
 INSERT OR IGNORE INTO enemies (name, type, hp, base_attack, fire_attack, lightning_attack, magic_attack, frost_attack, damage_scaling, base_damage_negation, defense, abilities, image, experience_reward, gold_reward, attack_type) VALUES
     ('Goblin', 'Creature', 30, 10, 0, 0, 0, 0, 0.1, 0.1, 2, '[\"Slash\", \"Quick Attack\"]', 'goblin.png', 10, 5, 'flat'),
