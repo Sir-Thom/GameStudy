@@ -8,5 +8,6 @@ pub struct Weapon {
     pub damage_type: String,
     pub base_damage: i32,
     pub defense_provided: i32,
+    pub upgrade_level: i32,
     pub description: String,
 }

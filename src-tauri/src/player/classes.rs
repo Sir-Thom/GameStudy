@@ -1,6 +1,5 @@
-use serde::{Deserialize, Serialize};
-
 use super::stats::Stats;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Classes {

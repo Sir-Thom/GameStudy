@@ -7,10 +7,10 @@ mod enemies;
 mod player;
 mod weapon;
 
+use armor::calculate_damage_taken;
 use enemies::{apply_damage_to_enemy, get_enemy_damage};
 use player::{
-    calculate_damage_taken, create_character, get_player_armor, get_player_hp,
-    get_player_resistances, get_player_stats,
+    create_character, get_player_armor, get_player_hp, get_player_resistances, get_player_stats,
 };
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]

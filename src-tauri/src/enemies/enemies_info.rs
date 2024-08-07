@@ -19,7 +19,6 @@ pub struct Enemies {
     pub frost_resistance: f32,
     pub lightning_resistance: f32,*/
     pub image: String,
-    //pub difficulty: f32,
     pub experience_reward: u32,
     pub gold_reward: u32,
 }
