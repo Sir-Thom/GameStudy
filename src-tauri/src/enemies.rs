@@ -3,6 +3,15 @@ use enemies_info::{calculate_enemy_damage, calculate_enemy_drops, Enemies};
 
 pub mod enemies_info;
 
+/// Calculate the damage taken by the player after armor reduction and expose it t.
+///
+/// # Arguments
+/// * `enemy_data` - A JSON string representing the enemy's stats.
+/// * `player_resistances` - A JSON string representing the player's resistances.
+/// * `player_level` - The level of the player.
+///
+/// # Returns
+/// The amount of damage taken by the player after armor reduction
 #[tauri::command(rename_all = "snake_case")]
 pub fn get_enemy_damage(
     enemy_data: String,
@@ -31,6 +40,15 @@ pub fn get_enemy_damage(
     Ok(damage)
 }
 
+/// Apply damage to an enemy and calculate the experience and gold drops  and expose it to JavaScript.
+///
+/// # Arguments
+/// * `enemy_data` - A JSON string representing the enemy's stats.
+/// * `damage` - The amount of damage dealt to the enemy.
+/// * `player_level` - The level of the player.
+///
+/// # Returns
+/// A tuple containing the updated enemy data, the experience drop, and the gold drop.
 #[tauri::command(rename_all = "snake_case")]
 pub fn apply_damage_to_enemy(
     enemy_data: String,

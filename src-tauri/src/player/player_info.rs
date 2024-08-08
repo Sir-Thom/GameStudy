@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::player_health::calculate_hp;
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Player {
     pub name: String,
@@ -16,4 +18,9 @@ pub struct Player {
     pub weapon_id: i32,
     pub armor_id: i32,
     pub accessory: String,
+}
+
+pub fn player_hp(constitution: u32, level: u32) -> Result<u32, String> {
+    let hp = calculate_hp(constitution, level)?;
+    Ok(hp)
 }
