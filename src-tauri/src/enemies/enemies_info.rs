@@ -22,11 +22,12 @@ pub struct Enemies {
     pub experience_reward: u32,
     pub gold_reward: u32,
 }
-
+/// Implement a method to allow enemies to take damage.
+/// If the enemy's HP reaches 0 the enemy is considered dead.
 impl Enemies {
     pub fn take_damage(&mut self, damage: f32) -> bool {
         let new_hp = self.hp as f32 - damage;
-        self.hp = new_hp.max(0.0) as u32; // Ensure HP doesn't go below 0
+        self.hp = new_hp.max(0.0) as u32;
 
         if self.hp == 0 {
             println!("Enemy {} has died.", self.name);
@@ -36,7 +37,16 @@ impl Enemies {
         }
     }
 }
-
+/// Calculate the damage that an enemy will do to the player
+/// after taking into account the player's resistances.
+///
+/// # Arguments
+/// * `enemy` - The enemy's stats.
+/// * `player_resistances` - The player's resistances.
+/// * `player_level` - The player's level.
+///
+/// # Returns
+/// The amount of damage the enemy will do to the player.
 pub fn calculate_enemy_damage(
     enemy: &Enemies,
     player_resistances: &PlayerResistances,
@@ -59,7 +69,16 @@ pub fn calculate_enemy_damage(
         total_damage
     }
 }
-
+/// Calculate the experience and gold drops from an enemy.
+/// The drops are scaled based on the player's level.
+/// The formula is: drop = base_drop * (1 + player_level / 10)
+/// The drops are then rounded to the nearest integer.
+/// The experience and gold drops are returned as a tuple.
+/// # Arguments
+/// * `enemy` - The enemy's stats.
+/// * `player_level` - The player's level.
+/// # Returns
+/// A tuple containing the experience drop and the gold drop.
 pub fn calculate_enemy_drops(enemy: &Enemies, player_level: u32) -> (u32, u32) {
     let xp_drop = (enemy.experience_reward as f32 * (1.0 + (player_level as f32 / 10.0))) as u32;
     let gold_drop = (enemy.gold_reward as f32 * (1.0 + (player_level as f32 / 10.0))) as u32;

@@ -20,7 +20,6 @@ fn greet(name: &str) -> String {
 
 fn main() {
     let migrations = vec![
-        // Define your migrations here
         Migration {
             version: 1,
             description: "create_initial_tables",

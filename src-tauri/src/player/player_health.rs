@@ -1,3 +1,9 @@
+///calculate_hp calculates the total HP of a player based on their Constitution score and level.This function is only used internally and is not exposed to the frontend.
+/// # Arguments
+/// * `constitution_score` - The player's Constitution score.
+/// * `level` - The player's level.
+/// # Returns
+/// The player's total HP.
 pub(super) fn calculate_hp(constitution_score: u32, level: u32) -> Result<u32, String> {
     const BASE_HP: u32 = 100;
     const CONSTITUTION_BONUS_PER_POINT: u32 = 5;

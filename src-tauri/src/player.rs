@@ -9,16 +9,30 @@ use classes::Classes;
 use player_info::{player_hp, Player};
 use stats::PlayerStats;
 
+/// Get the player's armor and expose it to the frontend.
+///
+/// # Arguments
+/// * `armor_data` - A JSON string representing the armor equipped by the player.
+///
+/// # Returns
+/// An empty result if the armor data was parsed successfully.
+///
 #[tauri::command(rename_all = "snake_case")]
 pub fn get_player_armor(armor_data: String) -> Result<(), String> {
     println!("armor_data: {:?}", armor_data);
     let armor_list: Vec<Armor> = serde_json::from_str(&armor_data)
         .map_err(|e| format!("Failed to parse armor data: {}", e))?;
     println!("Parsed armor data: {:?}", armor_list);
-    // Further processing of armor_list if needed
     Ok(())
 }
 
+/// Get the player's stats and expose it to the frontend.
+///     
+/// # Arguments
+/// * `player_stats` - A JSON string representing the player's stats.
+///
+/// # Returns
+/// An empty result if the player stats were parsed successfully.
 #[tauri::command(rename_all = "snake_case")]
 pub fn get_player_stats(player_stats: String) -> Result<(), String> {
     println!("player_stats: {:?}", player_stats);
@@ -27,7 +41,13 @@ pub fn get_player_stats(player_stats: String) -> Result<(), String> {
     println!("Parsed player stats: {:?}", stats_list);
     Ok(())
 }
-
+/// Get the player's resistances and expose it to the frontend.
+///
+/// # Arguments
+/// * `player_resistances` - A JSON string representing the player's resistances.
+///
+/// # Returns
+/// An empty result if the player resistances were parsed successfully.
 #[tauri::command(rename_all = "snake_case")]
 pub fn get_player_resistances(player_resistances: String) -> Result<(), String> {
     println!("player_resistances: {:?}", player_resistances);
@@ -37,6 +57,14 @@ pub fn get_player_resistances(player_resistances: String) -> Result<(), String> 
     Ok(())
 }
 
+/// Create a new character and expose it to the frontend.
+///
+/// # Arguments
+/// * `character_data` - A JSON string representing the character's data.
+/// * `class_data` - A JSON string representing the class's data.
+///
+/// # Returns
+/// The created character with updated HP.
 #[tauri::command(rename_all = "snake_case")]
 pub fn create_character(character_data: String, class_data: String) -> Result<Player, String> {
     println!("character_data: {:?}", character_data);
@@ -55,6 +83,14 @@ pub fn create_character(character_data: String, class_data: String) -> Result<Pl
     Ok(character)
 }
 
+/// Get the player's HP and expose it to the frontend.
+///
+/// # Arguments
+/// * `constitution` - The player's constitution.
+/// * `level` - The player's level.
+///
+/// # Returns
+/// The player's HP.
 #[tauri::command(rename_all = "snake_case")]
 pub fn get_player_hp(constitution: u32, level: u32) -> Result<u32, String> {
     let hp = player_hp(constitution, level)?;
@@ -93,7 +129,9 @@ mod tests {
             "fire_resistance": 10.0,
             "magic_resistance": 5.0,
             "frost_resistance": 0.0,
-            "lightning_resistance": 2.5
+            "lightning_resistance": 2.5,
+            "starting_weapon_id": 0,
+            "starting_armor_id": 0
         })
         .to_string();
 
