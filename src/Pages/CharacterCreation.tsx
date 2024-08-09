@@ -16,7 +16,6 @@ import {
   insertPlayer,
   insertPlayerStats,
   insertPlayerInventory,
-  fetchPlayerArmor,
 } from '../utils/dbUtils';
 
 const CharacterCreationPage: React.FC = () => {
@@ -44,12 +43,13 @@ const CharacterCreationPage: React.FC = () => {
   });
 
   useEffect(() => {
-    fetchClasses(db).then((result) => setClasses(result));
-    fetchArmor(db).then((result) => setArmor(result));
-    fetchWeapons(db).then((result) => setWeapons(result));
-    fetchClasses(db);
-    fetchWeapons(db);
-    fetchArmor(db);
+    const loadData = async () => {
+      const [classes, armor, weapons] = await Promise.all([fetchClasses(db), fetchArmor(db), fetchWeapons(db)]);
+      setClasses(classes);
+      setArmor(armor);
+      setWeapons(weapons);
+    };
+    loadData();
   }, [db]);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -60,6 +60,7 @@ const CharacterCreationPage: React.FC = () => {
       console.error('Class data not found');
       return;
     }
+    console.log('Class Data:', classData);
 
     try {
       const result = await invoke('create_character', {
@@ -67,22 +68,18 @@ const CharacterCreationPage: React.FC = () => {
         class_data: JSON.stringify({
           ...classData,
           base_stats: JSON.parse(classData.base_stats),
-          
-          // Exclude player_id if not required
         }),
       });
-      console.log('Character Data:', characterData);
-      console.log('Class Data:', classData);
 
       if (result) {
         const updatedCharacter: ExtendedPlayer = result as ExtendedPlayer;
         setCharacterData((prevData) => ({ ...prevData, ...updatedCharacter }));
-        let playerId = await insertPlayer(db, updatedCharacter).then((id) => id);
-        insertPlayerStats(db, playerId, updatedCharacter.class_name);
+        const playerId = await insertPlayer(db, updatedCharacter);
+        await insertPlayerStats(db, playerId, updatedCharacter.class_name);
+
         const inventoryId = await insertPlayerInventory(db, playerId);
         await (await db).execute('UPDATE players SET inventory_id = ? WHERE id = ?', [inventoryId, playerId]);
-        const armorData = await fetchPlayerArmor(db, updatedCharacter.armor_id);
-        console.log('Armor Data:', armorData);
+
         console.log('Character successfully created and saved to the database.');
       } else {
         console.error('Failed to create character');
@@ -136,29 +133,7 @@ const CharacterCreationPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Weapon Selection */}
-        <div>
-          <label htmlFor="weapon">Choose Your Weapon:</label>
-          <select id="weapon" name="weapon_id" value={characterData.weapon_id} onChange={handleInputChange} required>
-            <option value="">Select Weapon</option>
-            {weapons.map((weapon) => (
-              <option key={weapon.id} value={weapon.id}>
-                {weapon.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="armor">Choose Your Armor:</label>
-          <select id="armor" name="armor_id" value={characterData.armor_id} onChange={handleInputChange} required>
-            <option value="">Select Armor</option>
-            {armor.map((armor) => (
-              <option key={armor.id} value={armor.id}>
-                {armor.name}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Portrait Selection */}
         <PortraitSelection selectedPortrait={characterData.image} onSelect={handlePortraitSelect} />
 
         {/* Submit Button */}

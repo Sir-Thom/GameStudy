@@ -48,12 +48,21 @@ export const fetchCharacters = async (db: Promise<Database>): Promise<ExtendedPl
 export const insertPlayer = async (db: Promise<Database>, player: Player): Promise<number> => {
   try {
     const database = await db;
+
+    const query = `
+      WITH class_data AS (
+        SELECT starting_weapon_id, starting_armor_id
+        FROM classes
+        WHERE name = ?
+      )
+      INSERT INTO players (name, level, class_name, hp, skills, inventory_id, gold, experience, next_level_exp, current_exp, image, weapon_id, armor_id, accessory)
+      SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE((SELECT starting_weapon_id FROM class_data), NULL), COALESCE((SELECT starting_armor_id FROM class_data), NULL), ?
+    `;
+
     const insertResult = await database.execute(
-      `
-        INSERT INTO players (name, level, class_name, hp, skills, inventory_id, gold, experience, next_level_exp, current_exp, image, weapon_id, armor_id, accessory)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `,
+      query,
       [
+        player.class_name,
         player.name,
         player.level,
         player.class_name,
@@ -65,20 +74,18 @@ export const insertPlayer = async (db: Promise<Database>, player: Player): Promi
         player.next_level_exp,
         player.current_exp,
         player.image,
-        player.weapon_id,
-        player.armor_id,
         player.accessory,
-      ],
+      ]
     );
 
-    const playerId = insertResult.lastInsertId;
-
-    return playerId;
+    return insertResult.lastInsertId;
   } catch (error) {
     console.error('Error inserting player:', error);
     throw error;
   }
 };
+
+
 
 export const insertPlayerStats = async (db: Promise<Database>, playerId: number, className: string): Promise<void> => {
   try {
@@ -106,6 +113,17 @@ export const insertPlayerStats = async (db: Promise<Database>, playerId: number,
     throw error;
   }
 };
+
+export const fetchPlayerWeapon = async (db: Promise<Database>, weaponId: number): Promise<string> => {
+  try {
+    const database = await db;
+    const weapon: Weapon = await database.select('SELECT * FROM weapons WHERE id = $1', [weaponId]);
+    return JSON.stringify(weapon);
+  } catch (error) {
+    console.error('Error fetching player weapon:', error);
+    throw error;
+  }
+}
 
 export const fetchPlayerResistances = async (db: Promise<Database>, playerId: number): Promise<string> => {
   try {

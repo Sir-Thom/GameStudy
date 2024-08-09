@@ -12,6 +12,7 @@ use enemies::{apply_damage_to_enemy, get_enemy_damage};
 use player::{
     create_character, get_player_armor, get_player_hp, get_player_resistances, get_player_stats,
 };
+use weapon::calculate_damage_dealt;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -91,11 +92,11 @@ CREATE TABLE IF NOT EXISTS enemies (
     name TEXT NOT NULL,
     type TEXT NOT NULL,
     hp INTEGER NOT NULL,
-    base_attack INTEGER NOT NULL,
-    fire_attack INTEGER DEFAULT 0,
-    lightning_attack INTEGER DEFAULT 0,
-    magic_attack INTEGER DEFAULT 0,
-    frost_attack INTEGER DEFAULT 0,
+    base_damage INTEGER NOT NULL,
+    fire_damage INTEGER DEFAULT 0,
+    lightning_damage INTEGER DEFAULT 0,
+    magic_damage INTEGER DEFAULT 0,
+    frost_damage INTEGER DEFAULT 0,
     damage_scaling REAL DEFAULT 0.0,
     base_damage_negation REAL DEFAULT 0.0,
     defense INTEGER NOT NULL,
@@ -110,10 +111,19 @@ CREATE TABLE IF NOT EXISTS weapons (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL,
     weapon_type TEXT NOT NULL, 
-    damage_type TEXT NOT NULL,
+    upgrade_level INTEGER DEFAULT 0,
     base_damage INTEGER NOT NULL,
-    defense_provided INTEGER,
-    description TEXT
+    fire_damage INTEGER DEFAULT 0,
+    lightning_damage INTEGER DEFAULT 0,
+    magic_damage INTEGER DEFAULT 0,
+    frost_damage INTEGER DEFAULT 0,
+    defense_provided INTEGER DEFAULT 0, 
+    description TEXT,
+    strength_scaling REAL DEFAULT 0,
+    dexterity_scaling REAL DEFAULT 0,
+    intelligence_scaling REAL DEFAULT 0,
+    constitution_scaling REAL DEFAULT 0,
+    luck_scaling REAL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS inventory (
@@ -124,14 +134,15 @@ CREATE TABLE IF NOT EXISTS inventory (
     FOREIGN KEY (player_id) REFERENCES players(id)
 );
 
-INSERT OR IGNORE INTO weapons (name, weapon_type, damage_type, base_damage, defense_provided, description) VALUES
-    ('Rusty Sword and Wooden Shield', 'SwordAndShield', 'Physical', 25, 30, 'A rusty sword and a wooden shield.'),
-    ('Iron Dagger', 'Dagger', 'Physical', 18, NULL, 'A sharp iron dagger for quick strikes.'),
-    ('Longbow', 'Bow', 'Physical', 22, NULL, 'A longbow for long-range attacks.'),
-    ('Rusty GreatAxe', 'GreatAxe', 'Fire', 22, 25, 'A large axe with a rusty blade.'),
-    ('Magic Staff', 'Staff', 'Magic', 18, NULL, 'A staff imbued with arcane energies.'),
-    ('Steel Dagger', 'Dagger', 'Physical', 15, NULL, 'A sharp steel dagger for quick strikes.'),
-    ('Ice Wand', 'Wand', 'Ice', 16, NULL, 'A wand that freezes enemies on contact.');
+INSERT OR IGNORE INTO weapons (name, weapon_type, base_damage, fire_damage, lightning_damage, magic_damage, frost_damage, defense_provided, description, strength_scaling, dexterity_scaling, intelligence_scaling, constitution_scaling, luck_scaling) VALUES
+    ('Rusty Sword and Wooden Shield', 'SwordAndShield', 25, 0, 0, 0, 0, 30, 'A rusty sword and a wooden shield.', 0.1, 0.0, 0.0, 0.2, 0.0),
+    ('Iron Dagger', 'Dagger', 18, 0, 0, 0, 0, 0, 'A sharp iron dagger for quick strikes.', 0.0, 0.5, 0.0, 0.0, 0.0),
+    ('Longbow', 'Bow', 22, 0, 0, 0, 0, 0, 'A longbow for long-range attacks.', 0.0, 0.4, 0.0, 0.0, 0.1),
+    ('Rusty GreatAxe', 'GreatAxe', 22, 10, 0, 0, 0, 25, 'A large axe with a rusty blade that deals some fire damage.', 0.6, 0.0, 0.0, 0.0, 0.0),
+    ('Magic Staff', 'Staff', 18, 0, 0, 5, 0, 0, 'A staff imbued with arcane energies.', 0.0, 0.0, 0.7, 0.0, 0.0),
+    ('Steel Dagger', 'Dagger', 15, 0, 0, 0, 0, 0, 'A sharp steel dagger for quick strikes.', 0.0, 0.4, 0.0, 0.0, 0.0),
+    ('Ice Wand', 'Wand', 16, 0, 0, 0, 8, 0, 'A wand that freezes enemies on contact.', 0.0, 0.0, 0.6, 0.0, 0.0);
+
 
 INSERT OR IGNORE INTO armor (name, picture, defense_stat, special_ability, special_ability_value, description, strength_scaling, dexterity_scaling, intelligence_scaling, constitution_scaling, luck_scaling) VALUES
     ('Iron Armor', 'iron_armor.png', 15, NULL, NULL, 'Standard iron armor offering decent protection.', 0.02, 0, 0, 0.05, 0),
@@ -146,7 +157,7 @@ INSERT OR IGNORE INTO classes (name, base_stats, skills, fire_resistance, magic_
     ('Archer', '{\"strength\": 5, \"dexterity\": 8, \"intelligence\": 4, \"constitution\": 5, \"luck\": 5}', '[\"Precision Shot\", \"Evasive Maneuvers\", \"Marksmanship\"]', 0.05, 0.1, 0.1, 0.1, 3, 4),
     ('Rogue', '{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]', 0.05, 0.1, 0.1, 0.15, 6, 4);
 
-INSERT OR IGNORE INTO enemies (name, type, hp, base_attack, fire_attack, lightning_attack, magic_attack, frost_attack, damage_scaling, base_damage_negation, defense, abilities, image, experience_reward, gold_reward, attack_type) VALUES
+INSERT OR IGNORE INTO enemies (name, type, hp, base_damage, fire_damage, lightning_damage, magic_damage, frost_damage, damage_scaling, base_damage_negation, defense, abilities, image, experience_reward, gold_reward, attack_type) VALUES
     ('Goblin', 'Creature', 30, 10, 0, 0, 0, 0, 0.1, 0.1, 2, '[\"Slash\", \"Quick Attack\"]', 'goblin.png', 10, 5, 'flat'),
     ('Orc', 'Creature', 60, 15, 0, 0, 0, 0, 0.2, 0.2, 8, '[\"Smash\", \"Charge\"]', 'orc.png', 25, 15, 'flat'),
     ('Skeleton Warrior', 'Undead', 45, 12, 0, 0, 0, 0, 0.15, 0.15, 4, '[\"Bone Shield\", \"Rattle Strike\"]', 'skeleton_warrior.png', 20, 10, 'flat'),
@@ -182,6 +193,7 @@ INSERT OR IGNORE INTO enemies (name, type, hp, base_attack, fire_attack, lightni
             get_enemy_damage,
             apply_damage_to_enemy,
             get_player_hp,
+            calculate_damage_dealt
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

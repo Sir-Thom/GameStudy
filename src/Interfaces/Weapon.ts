@@ -7,5 +7,20 @@ export interface Weapon {
   defense_provided?: number;
   description?: string;
 }
-export type WeaponType = 'SwordAndShield' | 'Dagger' | 'Bow' | 'GreatAxe' | 'Staff' | 'Wand';
+
+export enum WeaponType {
+  SwordAndShield = 'SwordAndShield',
+  GreatSword = 'GreatSword',
+  Dagger = 'Dagger',
+  Bow = 'Bow',
+  GreatAxe = 'GreatAxe',
+  Staff = 'Staff',
+  Wand = 'Wand',
+  Spear = 'Spear',
+  GreatSper = 'GreatSpear',
+  Hammer = 'Hammer',
+  WarHammer = 'WarHammer',
+  Crossbow = 'Crossbow'
+}
+
 export type DamageType = 'Physical' | 'Fire' | 'Ice' | 'Magic';
