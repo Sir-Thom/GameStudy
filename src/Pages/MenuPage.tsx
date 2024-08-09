@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import Database from '@tauri-apps/plugin-sql';
 import { ExtendedPlayer } from '../Interfaces/Player';
 import {
+  countEnemies,
   fetchCharacters,
   fetchEnemy,
   fetchPlayer,
   fetchPlayerArmor,
   fetchPlayerResistances,
   fetchPlayerStats,
+  fetchPlayerWeapon,
 } from '../utils/dbUtils';
 import { invoke } from '@tauri-apps/api/core';
 import Inventory from '../components/Inventory/inventory';
@@ -26,23 +28,42 @@ const MainMenu: React.FC = () => {
   const handleCharacterSelect = (id: number) => {
     setSelectedCharacter(id);
   };
-  async function attackEnemy(damage: number) {
+  async function attackEnemy() {
     try {
       let enemyArray = await fetchEnemy(db, 1);
       let enemy = enemyArray[0];
       console.log('Enemy Data:', enemy);
+      const playerArray = (await fetchPlayer(db, 1)) as unknown as ExtendedPlayer[];
+      const player = playerArray[0];
+      const playerId = player.id;
 
+      const playerStats = await fetchPlayerStats(db, playerId);
+      const playerWeapon = await fetchPlayerWeapon(db, player.weapon_id);
+      const playerWeaponArray = JSON.parse(playerWeapon);
+      const weaponData = playerWeaponArray[0];
+      console.log('Player Weapon:', playerWeapon);
+      const damageDealt = await invoke('calculate_damage_dealt', {
+        weapon_data: playerWeapon,
+        player_stats: playerStats,
+      });
+      console.log('Damage Dealt:', damageDealt);
       enemy.abilities = JSON.parse(enemy.abilities);
       const enemyDataString = JSON.stringify(enemy);
 
       console.log('Enemy Data String:', enemyDataString);
-
+      const damgeToEnemyAfterDamageNegation = await invoke('get_enemy_damage_negation', {
+        enemy: enemy,
+        incoming_damage: damageDealt,
+        weapon: weaponData,
+      });
+      console.log('Enemy Damage Negation:', damgeToEnemyAfterDamageNegation);
       const response = await invoke('apply_damage_to_enemy', {
         enemy_data: enemyDataString,
-        damage: damage,
-        player_level: 1,
+        damage: damgeToEnemyAfterDamageNegation,
+        player_level: player.level,
       });
 
+      console.log('enemy count: ', await countEnemies(db));
       const [updatedEnemyData, xpDrop, goldDrop] = response as [string, number, number];
 
       console.log('Updated enemy data:', updatedEnemyData);
@@ -156,7 +177,7 @@ const MainMenu: React.FC = () => {
           </button>
         </Link>
         <button
-          onClick={() => attackEnemy(30)}
+          onClick={() => attackEnemy()}
           className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-red-600 transition duration-300 ease-in-out"
         />
       </div>

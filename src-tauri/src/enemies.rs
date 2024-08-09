@@ -1,5 +1,7 @@
-use crate::player::stats::PlayerResistances;
-use enemies_info::{calculate_enemy_damage, calculate_enemy_drops, Enemies};
+use crate::{player::stats::PlayerResistances, weapon::weapon_info::Weapon};
+use enemies_info::{
+    calculate_enemy_damage, calculate_enemy_damage_negation, calculate_enemy_drops, Enemies,
+};
 
 pub mod enemies_info;
 
@@ -70,4 +72,19 @@ pub fn apply_damage_to_enemy(
         .map_err(|e| format!("Failed to serialize updated enemy data: {}", e))?;
 
     Ok((updated_enemy_data, xp_drop, gold_drop))
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn get_enemy_drops(enemy_data: String, player_level: u32) -> Result<(u32, u32), String> {
+    let enemy: Enemies = serde_json::from_str(&enemy_data)
+        .map_err(|e| format!("Failed to parse enemy data: {}", e))?;
+
+    let drops = calculate_enemy_drops(&enemy, player_level);
+
+    Ok(drops)
+}
+
+#[tauri::command(rename_all = "snake_case")]
+pub fn get_enemy_damage_negation(enemy: Enemies, incoming_damage: f32, weapon: Weapon) -> f32 {
+    calculate_enemy_damage_negation(&enemy, incoming_damage, &weapon)
 }

@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 pub struct Armor {
     pub name: String,
     pub picture: String,
-    pub defense_stat: i32,
+    pub defense_stat: u32,
     pub special_ability: Option<f32>,
     pub description: Option<String>,
     pub ability_type: Option<String>,

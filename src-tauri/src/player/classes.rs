@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Classes {
     pub name: String,
+    pub description: String,
     pub base_stats: Stats,
     pub skills: String,
     pub fire_resistance: f32,

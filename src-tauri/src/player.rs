@@ -118,6 +118,7 @@ mod tests {
     fn test_create_character() {
         let class_data = json!({
             "name": "Test Class",
+            "description": "Test Description",
             "base_stats": {
                 "strength": 10,
                 "dexterity": 10,
