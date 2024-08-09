@@ -235,3 +235,14 @@ export const countEnemies = async (db: Promise<Database>): Promise<number> => {
     throw error;
   }
 }
+
+export const getClassDescription = async (db: Promise<Database>, className: string): Promise<string> => {
+  try {
+    const database = await db;
+    const classData: { description: string }[] = await database.select('SELECT description FROM classes WHERE name = $1', [className]);
+    return classData[0].description;
+  } catch (error) {
+    console.error('Error fetching class description:', error);
+    throw error;
+  }
+}

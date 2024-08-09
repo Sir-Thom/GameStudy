@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS players (
 CREATE TABLE IF NOT EXISTS classes (
     id INTEGER PRIMARY KEY,
     name TEXT NOT NULL UNIQUE,
+    description TEXT,
     base_stats TEXT NOT NULL,
     skills TEXT,
     fire_resistance REAL DEFAULT 0.0,
@@ -154,11 +155,11 @@ INSERT OR IGNORE INTO armor (name, picture, defense_stat, special_ability, speci
     ('Leather Armor', 'leather_armor.png', 10, NULL, NULL, 'Light and flexible leather armor.', 0, 0.05, 0, 0, 0.02),
     ('Dragon Scale Armor', 'dragon_scale_armor.png', 40, 'defense', 0.05, 'Armor made from dragon scales, increasing defense and providing a 5% damage reduction.', 0.1, 0, 0, 0.2, 0.05);
 
-INSERT OR IGNORE INTO classes (name, base_stats, skills, fire_resistance, magic_resistance, frost_resistance, lightning_resistance, starting_weapon_id, starting_armor_id) VALUES
-    ('Warrior', '{\"strength\": 8, \"dexterity\": 4, \"intelligence\": 2, \"constitution\": 7, \"luck\": 3}', '[\"Sword Mastery\", \"Shield Bash\", \"Battle Cry\"]', 0.1, 0.05, 0.05, 0.1, 1, 1),
-    ('Mage', '{\"strength\": 3, \"dexterity\": 4, \"intelligence\": 9, \"constitution\": 5, \"luck\": 4}', '[\"Fireball\", \"Ice Barrier\", \"Teleport\"]', 0.2, 0.1, 0.15, 0.05, 5, 3),
-    ('Archer', '{\"strength\": 5, \"dexterity\": 8, \"intelligence\": 4, \"constitution\": 5, \"luck\": 5}', '[\"Precision Shot\", \"Evasive Maneuvers\", \"Marksmanship\"]', 0.05, 0.1, 0.1, 0.1, 3, 4),
-    ('Rogue', '{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]', 0.05, 0.1, 0.1, 0.15, 6, 4);
+INSERT OR IGNORE INTO classes (name,description ,base_stats, skills, fire_resistance, magic_resistance, frost_resistance, lightning_resistance, starting_weapon_id, starting_armor_id) VALUES
+    ('Warrior', 'Warriors are stalwart defenders, renowned for their unmatched prowess in battle. Armed with heavy armor and a trusty sword, they charge into the fray with sheer determination and strength. As the backbone of any adventuring party, their presence inspires courage and instills hope.' ,'{\"strength\": 8, \"dexterity\": 4, \"intelligence\": 2, \"constitution\": 7, \"luck\": 3}', '[\"Sword Mastery\", \"Shield Bash\", \"Battle Cry\"]', 0.1, 0.05, 0.05, 0.1, 1, 1),
+    ('Mage','Mages wield the arcane arts with mastery and finesse. They use their knowledge of magic to manipulate the elements and conjure powerful spells. Though physically fragile, their spells can turn the tide of battle with devastating effects.' ,'{\"strength\": 3, \"dexterity\": 4, \"intelligence\": 9, \"constitution\": 5, \"luck\": 4}', '[\"Fireball\", \"Ice Barrier\", \"Teleport\"]', 0.2, 0.1, 0.15, 0.05, 5, 3),
+    ('Archer', 'Archers are masters of precision and agility. With their keen eyesight and nimble movements, they strike from a distance with deadly accuracy. Their skill with a bow makes them invaluable for taking down enemies before they even reach the frontline.','{\"strength\": 5, \"dexterity\": 8, \"intelligence\": 4, \"constitution\": 5, \"luck\": 5}', '[\"Precision Shot\", \"Evasive Maneuvers\", \"Marksmanship\"]', 0.05, 0.1, 0.1, 0.1, 3, 4),
+    ('Rogue', 'Rogues are cunning and elusive, experts in stealth and deception. They use their agility and guile to outmaneuver opponents and strike from the shadows. Their skills in stealth and trickery make them perfect for tasks that require subtlety and precision.','{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]', 0.05, 0.1, 0.1, 0.15, 6, 4);
 
 INSERT OR IGNORE INTO enemies (
     name, hp, base_damage, fire_damage, lightning_damage, magic_damage, frost_damage,
