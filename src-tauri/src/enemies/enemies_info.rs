@@ -1,11 +1,19 @@
 use serde::{Deserialize, Serialize};
 
-use crate::player::stats::PlayerResistances;
+use crate::{
+    player::stats::PlayerResistances,
+    weapon::{
+        self,
+        weapon_info::{self, Weapon},
+    },
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Enemies {
     pub name: String,
     pub hp: u32,
+    pub defense_stat: u32,
+    pub defense_scaling: f32,
     pub base_damage: u32,
     pub fire_damage: u32,
     pub lightning_damage: u32,
@@ -13,11 +21,11 @@ pub struct Enemies {
     pub frost_damage: u32,
     pub damage_scaling: f32,
     pub abilities: Vec<String>,
-    /*s
+    pub min_level_encountered: u32,
     pub fire_resistance: f32,
     pub magic_resistance: f32,
     pub frost_resistance: f32,
-    pub lightning_resistance: f32,*/
+    pub lightning_resistance: f32,
     pub image: String,
     pub experience_reward: u32,
     pub gold_reward: u32,
@@ -84,4 +92,35 @@ pub fn calculate_enemy_drops(enemy: &Enemies, player_level: u32) -> (u32, u32) {
     let gold_drop = (enemy.gold_reward as f32 * (1.0 + (player_level as f32 / 10.0))) as u32;
 
     (xp_drop, gold_drop)
+}
+
+pub fn calculate_enemy_damage_negation(
+    enemy: &Enemies,
+    incoming_damage: f32,
+    weapon: &Weapon,
+) -> f32 {
+    // Base reduction is influenced by the enemy's defense stat
+    let mut base_reduction = enemy.defense_stat as u32 as f32;
+    base_reduction *= base_reduction + enemy.defense_scaling;
+    println!("Base reduction: {:?}", base_reduction);
+    // Calculate elemental damage reduction based on the enemy's resistances and the weapon's elemental damage
+    let elemental_damage_reduction = {
+        let fire_reduction = enemy.fire_resistance * weapon.fire_damage as f32;
+        let lightning_reduction = enemy.lightning_resistance * weapon.lightning_damage as f32;
+        let magic_reduction = enemy.magic_resistance * weapon.magic_damage as f32;
+        let frost_reduction = enemy.frost_resistance * weapon.frost_damage as f32;
+
+        fire_reduction + lightning_reduction + magic_reduction + frost_reduction
+    };
+    println!(
+        "Elemental damage reduction: {:?}",
+        elemental_damage_reduction
+    );
+    // Total reduction is the sum of base defense reduction and elemental reductions
+    let total_reduction = base_reduction + elemental_damage_reduction;
+
+    // Final damage dealt to the enemy is the incoming damage reduced by the total reduction
+    let final_damage = (incoming_damage - total_reduction).max(0.0);
+    println!("Final damage: {:?}", final_damage);
+    final_damage
 }

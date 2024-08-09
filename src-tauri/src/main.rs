@@ -8,7 +8,7 @@ mod player;
 mod weapon;
 
 use armor::calculate_damage_taken;
-use enemies::{apply_damage_to_enemy, get_enemy_damage};
+use enemies::{apply_damage_to_enemy, get_enemy_damage, get_enemy_damage_negation};
 use player::{
     create_character, get_player_armor, get_player_hp, get_player_resistances, get_player_stats,
 };
@@ -90,7 +90,6 @@ CREATE TABLE IF NOT EXISTS armor (
 CREATE TABLE IF NOT EXISTS enemies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    type TEXT NOT NULL,
     hp INTEGER NOT NULL,
     base_damage INTEGER NOT NULL,
     fire_damage INTEGER DEFAULT 0,
@@ -98,13 +97,17 @@ CREATE TABLE IF NOT EXISTS enemies (
     magic_damage INTEGER DEFAULT 0,
     frost_damage INTEGER DEFAULT 0,
     damage_scaling REAL DEFAULT 0.0,
-    base_damage_negation REAL DEFAULT 0.0,
-    defense INTEGER NOT NULL,
+    defense_stat INTEGER NOT NULL,
+    defense_scaling REAL DEFAULT 0.0,
+    fire_resistance REAL DEFAULT 0.0,
+    magic_resistance REAL DEFAULT 0.0,
+    frost_resistance REAL DEFAULT 0.0,
+    lightning_resistance REAL DEFAULT 0.0,
     abilities TEXT,
     image TEXT,
     experience_reward INTEGER NOT NULL,
     gold_reward INTEGER NOT NULL,
-    attack_type TEXT DEFAULT 'flat' 
+    min_level_encountered INTEGER DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS weapons (
@@ -157,20 +160,24 @@ INSERT OR IGNORE INTO classes (name, base_stats, skills, fire_resistance, magic_
     ('Archer', '{\"strength\": 5, \"dexterity\": 8, \"intelligence\": 4, \"constitution\": 5, \"luck\": 5}', '[\"Precision Shot\", \"Evasive Maneuvers\", \"Marksmanship\"]', 0.05, 0.1, 0.1, 0.1, 3, 4),
     ('Rogue', '{\"strength\": 4, \"dexterity\": 7, \"intelligence\": 3, \"constitution\": 4, \"luck\": 6}', '[\"Stealth\", \"Backstab\", \"Evasion\"]', 0.05, 0.1, 0.1, 0.15, 6, 4);
 
-INSERT OR IGNORE INTO enemies (name, type, hp, base_damage, fire_damage, lightning_damage, magic_damage, frost_damage, damage_scaling, base_damage_negation, defense, abilities, image, experience_reward, gold_reward, attack_type) VALUES
-    ('Goblin', 'Creature', 30, 10, 0, 0, 0, 0, 0.1, 0.1, 2, '[\"Slash\", \"Quick Attack\"]', 'goblin.png', 10, 5, 'flat'),
-    ('Orc', 'Creature', 60, 15, 0, 0, 0, 0, 0.2, 0.2, 8, '[\"Smash\", \"Charge\"]', 'orc.png', 25, 15, 'flat'),
-    ('Skeleton Warrior', 'Undead', 45, 12, 0, 0, 0, 0, 0.15, 0.15, 4, '[\"Bone Shield\", \"Rattle Strike\"]', 'skeleton_warrior.png', 20, 10, 'flat'),
-    ('Dark Mage', 'Mage', 40, 5, 0, 0, 20, 0, 0.25, 0.2, 3, '[\"Fireball\", \"Dark Barrier\"]', 'dark_mage.png', 30, 20, 'magic'),
-    ('Dragon', 'Dragon', 120, 25, 15, 10, 12, 10, 0.3, 0.25, 15, '[\"Fire Breath\", \"Tail Swipe\"]', 'dragon.png', 50, 50, 'fire'),
-    ('Golem', 'Construct', 80, 20, 0, 0, 0, 0, 0.2, 0.2, 12, '[\"Rock Slam\", \"Earthquake\"]', 'golem.png', 40, 25, 'flat'),
-    ('Vampire Bat', 'Creature', 25, 8, 0, 0, 0, 0, 0.1, 0.1, 2, '[\"Bite\", \"Screech\"]', 'vampire_bat.png', 15, 8, 'flat'),
-    ('Troll', 'Creature', 70, 18, 0, 0, 0, 0, 0.2, 0.2, 10, '[\"Club Smash\", \"Regenerate\"]', 'troll.png', 35, 20, 'flat'),
-    ('Goblin Warrior', 'Creature', 40, 15, 0, 0, 0, 0, 0.1, 0.1, 5, '[\"Charge\", \"Stomp\"]', 'goblin_warrior.png', 20, 10, 'flat'),
-    ('Shadow Assassin', 'Undead', 50, 20, 0, 0, 0, 0, 0.2, 0.15, 6, '[\"Backstab\", \"Shadow Strike\"]', 'shadow_assassin.png', 25, 15, 'flat'),
-    ('Fire Demon', 'Demon', 80, 25, 15, 0, 0, 0, 0.3, 0.2, 8, '[\"Fire Claw\", \"Inferno\"]', 'fire_demon.png', 40, 20, 'fire'),
-    ('Frost Giant', 'Giant', 100, 30, 0, 0, 0, 20, 0.25, 0.25, 10, '[\"Ice Smash\", \"Frost Breath\"]', 'frost_giant.png', 50, 30, 'frost');
-
+INSERT OR IGNORE INTO enemies (
+    name, hp, base_damage, fire_damage, lightning_damage, magic_damage, frost_damage,
+    damage_scaling, defense_stat, defense_scaling, fire_resistance, magic_resistance,
+    frost_resistance, lightning_resistance, min_level_encountered, abilities, image,
+    experience_reward, gold_reward
+) VALUES
+    ('Goblin', 30, 10, 0, 0, 0, 0, 0.1, 2, 0.1, 0.0, 0.0, 0.0, 0.0, 1, '[\"Slash\", \"Quick Attack\"]', 'goblin.png', 10, 5),
+    ('Orc', 60, 15, 0, 0, 0, 0, 0.2, 8, 0.2, 0.0, 0.0, 0.0, 0.0, 5, '[\"Smash\", \"Charge\"]', 'orc.png', 25, 15),
+    ('Skeleton Warrior', 45, 12, 0, 0, 0, 0, 0.15, 4, 0.15, 0.0, 0.0, 0.0, 0.0, 3, '[\"Bone Shield\", \"Rattle Strike\"]', 'skeleton_warrior.png', 20, 10),
+    ('Dark Mage', 40, 5, 0, 0, 20, 0, 0.25, 3, 0.2, 0.0, 0.25, 0.0, 0.0, 10, '[\"Fireball\", \"Dark Barrier\"]', 'dark_mage.png', 30, 20),
+    ('Dragon', 120, 25, 15, 10, 12, 10, 0.3, 15, 0.25, 0.3, 0.0, 0.0, 0.0, 15, '[\"Fire Breath\", \"Tail Swipe\"]', 'dragon.png', 50, 50),
+    ('Golem', 80, 20, 0, 0, 0, 0, 0.2, 12, 0.2, 0.0, 0.0, 0.0, 0.0, 10, '[\"Rock Slam\", \"Earthquake\"]', 'golem.png', 40, 25),
+    ('Vampire Bat', 25, 8, 0, 0, 0, 0, 0.1, 2, 0.1, 0.0, 0.0, 0.0, 0.0, 2, '[\"Bite\", \"Screech\"]', 'vampire_bat.png', 15, 8),
+    ('Troll', 70, 18, 0, 0, 0, 0, 0.2, 10, 0.2, 0.0, 0.0, 0.0, 0.0, 8, '[\"Club Smash\", \"Regenerate\"]', 'troll.png', 35, 20),
+    ('Goblin Warrior', 40, 15, 0, 0, 0, 0, 0.1, 5, 0.1, 0.0, 0.0, 0.0, 0.0, 3, '[\"Charge\", \"Stomp\"]', 'goblin_warrior.png', 20, 10),
+    ('Shadow Assassin', 50, 20, 0, 0, 0, 0, 0.2, 6, 0.15, 0.0, 0.0, 0.0, 0.0, 7, '[\"Backstab\", \"Shadow Strike\"]', 'shadow_assassin.png', 25, 15),
+    ('Fire Demon', 80, 25, 15, 0, 0, 0, 0.3, 8, 0.2, 0.3, 0.0, 0.0, 0.0, 8, '[\"Fire Claw\", \"Inferno\"]', 'fire_demon.png', 40, 20),
+    ('Frost Giant', 100, 30, 0, 0, 0, 20, 0.25, 10, 0.25, 0.0, 0.0, 0.25, 0.0, 10, '[\"Ice Smash\", \"Frost Breath\"]', 'frost_giant.png', 50, 30);
 ",
             kind: MigrationKind::Up,
         }
@@ -192,6 +199,7 @@ INSERT OR IGNORE INTO enemies (name, type, hp, base_damage, fire_damage, lightni
             get_player_resistances,
             get_enemy_damage,
             apply_damage_to_enemy,
+            get_enemy_damage_negation,
             get_player_hp,
             calculate_damage_dealt
         ])

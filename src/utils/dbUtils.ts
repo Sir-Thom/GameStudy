@@ -224,3 +224,14 @@ export const fetchPlayerHp = async (db: Promise<Database>, playerId: number): Pr
     throw error;
   }
 }
+
+export const countEnemies = async (db: Promise<Database>): Promise<number> => {
+  try {
+    const database = await db;
+    const enemies: { [key: string]: number }[] = await database.select('SELECT COUNT(*) FROM enemies');
+    return enemies[0]['COUNT(*)'];
+  } catch (error) {
+    console.error('Error counting enemies:', error);
+    throw error;
+  }
+}
