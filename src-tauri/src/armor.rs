@@ -4,6 +4,15 @@ pub mod armor_info;
 use crate::player::stats::PlayerStats;
 use armor_info::{get_armor_damage_reduction, Armor};
 
+/// Calculate the damage taken by the player after armor reduction and expose it t.
+/// 
+/// # Arguments
+/// * `armor_data` - A JSON string representing the armor equipped by the player.
+/// * `damage` - The amount of damage dealt to the player.
+/// * `player_stats` - A JSON string representing the player's stats.
+/// 
+/// # Returns
+/// The amount of damage taken by the player after armor reduction.
 #[tauri::command(rename_all = "snake_case")]
 pub(super) fn calculate_damage_taken(
     armor_data: String,

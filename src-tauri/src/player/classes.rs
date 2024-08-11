@@ -14,3 +14,4 @@ pub struct Classes {
     pub starting_weapon_id: i32,
     pub starting_armor_id: i32,
 }
+
