@@ -161,7 +161,7 @@ const MainMenu: React.FC = () => {
             Create Character
           </button>
         </Link>
-        <Link to="/battle">
+        <Link to="/battle" replace={true}>
           <button className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out">
             Start Battle
           </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-
+import PauseMenu from '../components/UI/PauseMenu/PauseMenu';
 const GameView: React.FC = () => {
   const [question, setQuestion] = useState<string>('What is 2 + 2?'); // Example question
   const [answer, setAnswer] = useState<string>('');
@@ -8,13 +8,30 @@ const GameView: React.FC = () => {
   const [isPlayerTurn, setIsPlayerTurn] = useState<boolean>(true);
   const [playerHealth, setPlayerHealth] = useState<number>(100);
   const [enemyHealth, setEnemyHealth] = useState<number>(100);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const correctAnswer = '4'; // Example correct answer
+  const togglePauseMenu = () => {
+    setIsPaused((prev) => !prev);
+  };
+
+   const correctAnswer = '4'; // Example correct answer
 
   useEffect(() => {
-    if (!isPlayerTurn && enemyHealth > 0) {
+     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        togglePauseMenu();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+
+      if (!isPlayerTurn && enemyHealth > 0) {
       // Simulate enemy action when it's not the player's turn
       simulateEnemyTurn();
+    
     }
   }, [isPlayerTurn]);
 
@@ -51,6 +68,7 @@ const GameView: React.FC = () => {
 
   return (
     <div className="w-screen h-screen text-black bg-gray-100 p-8 rounded-lg shadow-lg">
+     <PauseMenu isVisible={isPaused} onClose={togglePauseMenu} mainMenuLink='/' />
       <h1 className="text-4xl font-bold mb-6">Game View</h1>
 
       <div className="mb-6">

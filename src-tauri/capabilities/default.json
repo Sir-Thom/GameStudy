@@ -16,6 +16,7 @@
     "sql:allow-close", 
     "sql:allow-load",
     "sql:allow-execute",
-    "sql:allow-select"
+    "sql:allow-select",
+    "core:window:allow-close"
   ]
 }
