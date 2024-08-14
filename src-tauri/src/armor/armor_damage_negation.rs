@@ -93,11 +93,12 @@ pub(super) fn calculate_damage_reduction(
         + luck_reduction;
     let total_reduction = base_reduction + total_scaling_reduction;
 
-    let special_reduction = match armor.ability_type.as_deref() {
-        Some("defense") => armor.special_ability.unwrap_or(0.0),
-        _ => 0.0,
+     
+    let special_reduction = if armor.special_ability == Some(String::from("defense")) {
+        armor.special_ability_value.unwrap_or(0.0)
+    } else {
+        0.0
     };
-
     let final_reduction = (total_reduction + special_reduction).min(80.0);
 
     let damage_to_take =
@@ -122,9 +123,9 @@ mod tests {
             name: String::from("Test Armor"),
             picture: String::from("test.png"),
             defense_stat: 20,
-            special_ability: Some(10.0),
+            special_ability_value: Some(10.0),
             description: Some(String::from("Test armor with special ability")),
-            ability_type: Some(String::from("defense")),
+            special_ability: Some(String::from("defense")),
             strength_scaling: Some(0.1),
             dexterity_scaling: Some(0.2),
             intelligence_scaling: Some(0.3),
@@ -155,9 +156,9 @@ mod tests {
             name: String::from("Test Armor"),
             picture: String::from("test.png"),
             defense_stat: 20,
-            special_ability: Some(100.0),
+            special_ability_value: Some(100.0),
             description: Some(String::from("Test armor with special ability")),
-            ability_type: Some(String::from("defense")),
+            special_ability: Some(String::from("defense")),
             strength_scaling: Some(0.1),
             dexterity_scaling: Some(0.2),
             intelligence_scaling: Some(0.3),
@@ -189,9 +190,9 @@ mod tests {
             name: String::from("Test Armor"),
             picture: String::from("test.png"),
             defense_stat: 20,
-            special_ability: Some(0.0),
+            special_ability_value: Some(0.0),
             description: Some(String::from("Test armor with  no special ability")),
-            ability_type: Some(String::from("")),
+            special_ability: Some(String::from("")),
             strength_scaling: Some(0.1),
             dexterity_scaling: Some(0.2),
             intelligence_scaling: Some(0.3),
@@ -222,9 +223,9 @@ mod tests {
             name: String::from("Test Armor"),
             picture: String::from("test.png"),
             defense_stat: 20,
-            special_ability: Some(0.0),
+            special_ability_value: Some(0.0),
             description: Some(String::from("Test armor with no special ability")),
-            ability_type: Some(String::from("")),
+            special_ability: Some(String::from("")),
             strength_scaling: Some(0.1),
             dexterity_scaling: Some(0.2),
             intelligence_scaling: Some(0.3),

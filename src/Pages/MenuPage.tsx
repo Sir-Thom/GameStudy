@@ -116,7 +116,7 @@ const MainMenu: React.FC = () => {
         }));
 
         const enemyDataString = JSON.stringify(enemyArray);
-
+        
         await invoke('get_player_stats', { player_stats: playerStats });
         console.log('Player Stats:', JSON.parse(playerStats));
         const enemy_dmg = await invoke('get_enemy_damage', {
@@ -134,7 +134,8 @@ const MainMenu: React.FC = () => {
         if (armorId !== undefined && armorId !== null) {
           const armorData = await fetchPlayerArmor(db, armorId);
           console.log('Armor Data:', armorData);
-
+          const armor_damage_boost = await invoke('armor_damage_attack_increase', {armor_data: armorData});
+          console.log('Armor Damage Boost:', armor_damage_boost);
           let damageTaken = await invoke('calculate_damage_taken', {
             armor_data: armorData,
             damage: enemy_dmg,
@@ -144,6 +145,8 @@ const MainMenu: React.FC = () => {
         } else {
           console.error('Armor ID is undefined');
         }
+
+
 
         console.log(`Loading character with ID: ${selectedCharacter}`);
       } catch (error) {

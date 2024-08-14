@@ -7,7 +7,7 @@ mod enemies;
 mod player;
 mod weapon;
 
-use armor::calculate_damage_taken;
+use armor::{calculate_damage_taken,armor_damage_attack_increase};
 use enemies::{apply_damage_to_enemy, get_enemy_damage, get_enemy_damage_negation};
 use player::{
     create_character, get_player_armor, get_player_hp, get_player_resistances, get_player_stats,
@@ -202,7 +202,8 @@ INSERT OR IGNORE INTO enemies (
             apply_damage_to_enemy,
             get_enemy_damage_negation,
             get_player_hp,
-            calculate_damage_dealt
+            calculate_damage_dealt,
+            armor_damage_attack_increase
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
