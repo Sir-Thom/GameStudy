@@ -1,4 +1,4 @@
-name: Rust
+name: Rust CI
 
 on:
   push:
@@ -11,23 +11,26 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-    - name: Run tests
-    env: 
-      key: ${{ secrets.KEY_BIN_ENCRYPTION }}
+
+    - name: Install dependencies
       run: |
-          sudo apt install -y libwebkit2gtk-4.1-dev \
-          build-essential \
-          curl \
-          wget \
-          file \
-          libxdo-dev \
-          libssl-dev \
-          libayatana-appindicator3-dev \
-          librsvg2-dev
-          cd src-tauri
-          cargo test --verbose
+        sudo apt install -y libwebkit2gtk-4.1-dev \
+        build-essential \
+        curl \
+        wget \
+        file \
+        libxdo-dev \
+        libssl-dev \
+        libayatana-appindicator3-dev \
+        librsvg2-dev
+
+    - name: Run tests
+      env: 
+        KEY_BIN_ENCRYPTION: ${{ secrets.KEY_BIN_ENCRYPTION }}
+      run: |
+        cd src-tauri
+        cargo test --verbose
