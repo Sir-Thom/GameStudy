@@ -27,11 +27,11 @@ jobs:
         libssl-dev \
         libayatana-appindicator3-dev \
         librsvg2-dev
-        
+
+
     - name: Create .env file
       run: |
         echo "KEY_BIN_ENCRYPTION=${{ secrets.KEY_BIN_ENCRYPTION }}" > .env
-
     - name: Run tests
       env: 
         KEY_BIN_ENCRYPTION: ${{ secrets.KEY_BIN_ENCRYPTION }}
