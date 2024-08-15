@@ -4,6 +4,15 @@ pub mod armor_info;
 use crate::player::stats::PlayerStats;
 use armor_info::{get_armor_damage_reduction, Armor};
 
+/// Calculate the damage taken by the player after armor reduction and expose it t.
+/// 
+/// # Arguments
+/// * `armor_data` - A JSON string representing the armor equipped by the player.
+/// * `damage` - The amount of damage dealt to the player.
+/// * `player_stats` - A JSON string representing the player's stats.
+/// 
+/// # Returns
+/// The amount of damage taken by the player after armor reduction.
 #[tauri::command(rename_all = "snake_case")]
 pub(super) fn calculate_damage_taken(
     armor_data: String,
@@ -24,4 +33,15 @@ pub(super) fn calculate_damage_taken(
     );
     println!("Damage taken: {:?}", damage_taken);
     Ok(damage_taken)
+}
+#[tauri::command(rename_all = "snake_case")]
+pub(super) fn armor_damage_attack_increase(armor_data: String) -> Result<f32, String> {
+    let armor_list: Vec<Armor> = serde_json::from_str(&armor_data)
+        .map_err(|e| format!("Failed to parse armor data: {}", e))?;
+    let armor = armor_list.first().unwrap();
+    if armor.special_ability == Some("attack".to_string()) {
+        Ok(armor.special_ability_value.unwrap())
+    } else {
+        Ok(0.0)
+    }
 }

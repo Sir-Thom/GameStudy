@@ -4,7 +4,9 @@ use crate::weapon::weapon_info::Weapon;
 pub(super) fn calculate_weapon_damage(weapon: &Weapon, player_stats: &PlayerStats) -> u32 {
     let mut total_damage = weapon.base_damage;
     println!("Base damage: {:?}", total_damage);
-
+    // if player armor has special ability that increases damage then add it to the total damage
+    // if let Some(attack_increase) = armor_damage_attack_increase(armor_data) {
+    
     let elemental_damage =
         weapon.fire_damage + weapon.lightning_damage + weapon.magic_damage + weapon.frost_damage;
 

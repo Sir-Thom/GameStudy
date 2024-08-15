@@ -14,7 +14,7 @@ import {
 } from '../utils/dbUtils';
 import { invoke } from '@tauri-apps/api/core';
 import Inventory from '../components/Inventory/inventory';
-
+import * as path from '@tauri-apps/api/path';
 const MainMenu: React.FC = () => {
   const [characters, setCharacters] = useState<ExtendedPlayer[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);
@@ -23,6 +23,7 @@ const MainMenu: React.FC = () => {
   useEffect(() => {
     fetchCharacters(db).then((result) => setCharacters(result));
     fetchCharacters(db);
+
   }, [db]);
 
   const handleCharacterSelect = (id: number) => {
@@ -81,6 +82,8 @@ const MainMenu: React.FC = () => {
   }
 
   const handleLoadCharacter = async () => {
+    
+
     if (selectedCharacter !== null) {
       try {
         const playerArray = (await fetchPlayer(db, selectedCharacter)) as unknown as ExtendedPlayer[];
@@ -116,7 +119,7 @@ const MainMenu: React.FC = () => {
         }));
 
         const enemyDataString = JSON.stringify(enemyArray);
-
+        
         await invoke('get_player_stats', { player_stats: playerStats });
         console.log('Player Stats:', JSON.parse(playerStats));
         const enemy_dmg = await invoke('get_enemy_damage', {
@@ -134,7 +137,8 @@ const MainMenu: React.FC = () => {
         if (armorId !== undefined && armorId !== null) {
           const armorData = await fetchPlayerArmor(db, armorId);
           console.log('Armor Data:', armorData);
-
+          const armor_damage_boost = await invoke('armor_damage_attack_increase', {armor_data: armorData});
+          console.log('Armor Damage Boost:', armor_damage_boost);
           let damageTaken = await invoke('calculate_damage_taken', {
             armor_data: armorData,
             damage: enemy_dmg,
@@ -144,6 +148,8 @@ const MainMenu: React.FC = () => {
         } else {
           console.error('Armor ID is undefined');
         }
+
+
 
         console.log(`Loading character with ID: ${selectedCharacter}`);
       } catch (error) {
@@ -161,14 +167,14 @@ const MainMenu: React.FC = () => {
             Create Character
           </button>
         </Link>
-        <Link to="/battle">
+        <Link to="/battle" replace={true}>
           <button className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 transition duration-300 ease-in-out">
             Start Battle
           </button>
         </Link>
-        <Link to="/inventory">
+        <Link to="/createquiz">
           <button className="bg-purple-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-purple-600 transition duration-300 ease-in-out">
-            Inventory
+            Create Quiz
           </button>
         </Link>
         <Link to="/settings">

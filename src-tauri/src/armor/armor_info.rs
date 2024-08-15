@@ -20,15 +20,17 @@ pub struct Armor {
     pub name: String,
     pub picture: String,
     pub defense_stat: u32,
-    pub special_ability: Option<f32>,
+    pub special_ability_value: Option<f32>,
     pub description: Option<String>,
-    pub ability_type: Option<String>,
+    pub special_ability: Option<String>,
     pub strength_scaling: Option<f32>,
     pub dexterity_scaling: Option<f32>,
     pub intelligence_scaling: Option<f32>,
     pub constitution_scaling: Option<f32>,
     pub luck_scaling: Option<f32>,
 }
+
+
 
 /// Get the damage reduction provided by the armor.
 ///
@@ -46,3 +48,6 @@ pub fn get_armor_damage_reduction(
 ) -> f32 {
     return calculate_damage_reduction(armor, incoming_damage, player_stats);
 }
+
+
+//TODO: Implement a method to allow armor to add bonus damage to the player's attack.
