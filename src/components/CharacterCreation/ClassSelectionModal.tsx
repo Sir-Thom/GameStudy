@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { ClassType } from '../../types/ClassType';
 import { Classes } from '../../Interfaces/Classes';
-import { Weapon } from '../../Interfaces/Weapon';
-import { Armor } from '../../Interfaces/Armor';
 
 interface ClassSelectionModalProps {
   classes: Classes[];

@@ -38,7 +38,7 @@ use crate::player::stats::PlayerStats;
 ///
 /// # Example
 /// ```
-
+    
 ///
 /// let armor = Armor {
 ///   name: String::from("Test Armor"),

@@ -1,23 +1,28 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+use tauri::Listener;
 use tauri_plugin_sql::{Migration, MigrationKind};
+use tauri_plugin_fs::FsExt;
 
 mod armor;
 mod enemies;
 mod player;
 mod weapon;
+mod quiz;
 
 use armor::{calculate_damage_taken,armor_damage_attack_increase};
 use enemies::{apply_damage_to_enemy, get_enemy_damage, get_enemy_damage_negation};
 use player::{
     create_character, get_player_armor, get_player_hp, get_player_resistances, get_player_stats,
 };
+use quiz::{quiz_info::save_quiz, save_quiz_cmd};
 use weapon::calculate_damage_dealt;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
+
 
 fn main() {
     let migrations = vec![
@@ -185,6 +190,16 @@ INSERT OR IGNORE INTO enemies (
     ];
 
     tauri::Builder::default()
+              .plugin(tauri_plugin_fs::init())
+      .setup(move |app| {
+          // allowed the given directory
+          let scope = app.fs_scope();
+          scope.allow_directory("/home", false);
+          dbg!(scope.allowed());
+
+           
+          Ok(())
+       })
         .plugin(tauri_plugin_sql::Builder::default().build())
         .plugin(
             tauri_plugin_sql::Builder::default()
@@ -203,7 +218,8 @@ INSERT OR IGNORE INTO enemies (
             get_enemy_damage_negation,
             get_player_hp,
             calculate_damage_dealt,
-            armor_damage_attack_increase
+            armor_damage_attack_increase,
+            save_quiz_cmd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

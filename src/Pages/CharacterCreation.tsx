@@ -189,9 +189,9 @@ const CharacterCreationPage: React.FC = () => {
             <div className="mt-4">
               <h4 className="text-lg font-semibold">Base Stats:</h4>
               <ul>
-                {Object.entries(JSON.parse(selectedClassData.base_stats)).map(([stat, value]) => (
+                {Object.entries(JSON.parse((selectedClassData as Classes).base_stats)).map(([stat, value]) => (
                   <li key={stat}>
-                    <span className="font-semibold">{stat}:</span> {value}
+                    <span className="font-semibold">{stat}:</span> {String(value)}
                   </li>
                 ))}
               </ul>
