@@ -6,7 +6,6 @@ import CharacterCreationPage from './Pages/CharacterCreation';
 import MainMenu from './Pages/MenuPage';
 import BattlePage from './Pages/BattlePage';
 import { QuestionMakerPage } from './Pages/QuestionMakerPage';
-
 export const Router = () => {
   return (
     <BrowserRouter basename="/">
