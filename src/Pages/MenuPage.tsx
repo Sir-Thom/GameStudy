@@ -14,7 +14,6 @@ import {
 } from '../utils/dbUtils';
 import { invoke } from '@tauri-apps/api/core';
 import Inventory from '../components/Inventory/inventory';
-import * as path from '@tauri-apps/api/path';
 const MainMenu: React.FC = () => {
   const [characters, setCharacters] = useState<ExtendedPlayer[]>([]);
   const [selectedCharacter, setSelectedCharacter] = useState<number | null>(null);

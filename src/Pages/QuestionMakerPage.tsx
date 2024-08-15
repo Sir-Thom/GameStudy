@@ -11,37 +11,7 @@ export function QuestionMakerPage() {
   const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
 
-  const handleAddQuestion = async () => {
-    if (!title.trim()) {
-      alert('Please enter a quiz title');
-      return;
-    }
-
-    // Save the quiz data
-    const quiz = {
-      quiz_title: title,
-      questions: quizQuestions.map(q => ({
-        question_text: q.question,
-        answer_type: q.answerType,
-        single_answer: q.answerType === 'single' ? q.answer : undefined,
-        choices: q.answerType === 'multiple' ? q.answer : undefined
-      }))
-    };
-
-    const appdir = await path.appDataDir();
-    console.log('App Dir:', appdir);
-    const quizData = JSON.stringify(quiz);
-    console.log('Quiz Data:', quizData);
-    
-    invoke('save_quiz_cmd', { app_dir_path: appdir, quiz_data: quizData, filename: title })
-      .then((response) => {
-        console.log('Quiz created:', response);
-      })
-      .catch((error) => {
-        console.error('Error saving quiz:', error);
-      });
-
-    
+  const handleAddQuestion = () => {
     const newQuestion = {
       question,
       answerType,
@@ -58,6 +28,56 @@ export function QuestionMakerPage() {
     }
 
     resetForm();
+  };
+
+  const handleSaveQuiz = async () => {
+    if (!title.trim()) {
+      alert('Please enter a quiz title');
+      return;
+    }
+
+    const quiz = {
+      quiz_title: title,
+      questions: quizQuestions.map(q => ({
+        question_text: q.question,
+        answer_type: q.answerType,
+        single_answer: q.answerType === 'single' ? q.answer : undefined,
+        choices: q.answerType === 'multiple' ? q.answer : undefined
+      }))
+    };
+
+    const appdir = await path.appDataDir();
+    console.log('App Dir:', appdir);
+    const quizData = JSON.stringify(quiz);
+    console.log('Quiz Data:', quizData);
+
+    invoke('save_quiz_cmd', { app_dir_path: appdir, quiz_data: quiz, filename: title })
+      .then((response) => {
+        console.log('Quiz saved:', response);
+      })
+      .catch((error) => {
+        console.error('Error saving quiz:', error);
+      });
+  };
+
+  const handleLoadQuiz = async () => {
+    const appdir = await path.appDataDir();
+    console.log('App Dir:', appdir);
+
+    invoke('load_quiz_cmd', { app_dir_path: appdir, filename: title })
+      .then((response) => {
+        const loadedQuiz = response as any;
+        console.log('Quiz loaded:', loadedQuiz);
+        setTitle(loadedQuiz.quiz_title);
+        setQuizQuestions(loadedQuiz.questions.map((q: any) => ({
+          question: q.question_text,
+          answerType: q.answer_type,
+          answer: q.answer_type === 'single' ? q.single_answer : q.choices
+        })));
+      })
+      .catch((error) => {
+        console.error('Error loading quiz:', error);
+      });
   };
 
   const resetForm = () => {
@@ -188,9 +208,21 @@ export function QuestionMakerPage() {
 
       <button
         onClick={handleAddQuestion}
-        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mr-2"
       >
-        {editingIndex !== null ? 'Update Question' : 'Save Question'}
+        {editingIndex !== null ? 'Update Question' : 'Add Question'}
+      </button>
+      <button
+        onClick={handleSaveQuiz}
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
+      >
+        Save Quiz
+      </button>
+      <button
+        onClick={handleLoadQuiz}
+        className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+      >
+        Load Quiz
       </button>
 
       <div className="mt-8">
