@@ -3,11 +3,11 @@ use bincode::Options;
 use crypto::buffer::{self, ReadBuffer, WriteBuffer};
 use crypto::{aes, aes::KeySize, blockmodes};
 use dotenv::dotenv;
+use flate2;
 use serde::{Deserialize, Serialize};
 use std::fs;
-use std::io::Cursor;
+use std::io::{Cursor, Read, Write};
 use std::path::{Path, PathBuf};
-
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Quiz {
     pub quiz_title: String,
@@ -92,7 +92,34 @@ fn encrypt(input: Vec<u8>) -> Vec<u8> {
     final_result
 }
 
-fn decrypt(input: &[u8]) -> String {
+fn compress_data(input: Vec<u8>) -> Vec<u8> {
+    println!("Original size: {} bytes", input.len());
+    let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::default());
+    encoder.write_all(&input).expect("Failed to compress data");
+    let compressed_data = encoder.finish().expect("Failed to finish compression");
+    println!("Compressed size: {} bytes", compressed_data.len());
+    compressed_data
+}
+
+fn decompress_data(input: Vec<u8>) -> Vec<u8> {
+    let mut decoder = flate2::read::ZlibDecoder::new(Cursor::new(input));
+    let mut decompressed_data = Vec::new();
+    decoder
+        .read_to_end(&mut decompressed_data)
+        .expect("Failed to decompress data");
+    println!("Decompressed size: {} bytes", decompressed_data.len());
+    decompressed_data
+}
+
+/// Decrypt .quiz file
+///
+/// # Arguments
+/// * `input` - the file data to decrypt
+///
+/// # Returns
+/// the decrypted data
+///
+fn decrypt(input: &[u8]) -> Vec<u8> {
     dotenv().ok().expect("Failed to read .env file");
     let key: [u8; 32] = get_key_from_env();
     let iv = [0u8; 16];
@@ -117,7 +144,7 @@ fn decrypt(input: &[u8]) -> String {
             buffer::BufferResult::BufferOverflow => {}
         }
     }
-    String::from_utf8(final_result).unwrap()
+    final_result 
 }
 
 pub fn save_quiz(app_dir_path: String, quiz: &Quiz, filename: String) -> Result<(), String> {
@@ -136,8 +163,8 @@ pub fn save_quiz(app_dir_path: String, quiz: &Quiz, filename: String) -> Result<
     if quiz_file.exists() {
         let binary_data =
             fs::read(&quiz_file).map_err(|e| format!("Failed to read quiz data: {}", e))?;
-
-        let old_hash = hash(&binary_data);
+        let decompressed_data = decompress_data(binary_data);
+        let old_hash = hash(&decompressed_data);
         println!("Old Hash: {}", old_hash);
         if old_hash == hash_file {
             return Ok(());
@@ -148,7 +175,8 @@ pub fn save_quiz(app_dir_path: String, quiz: &Quiz, filename: String) -> Result<
         .with_little_endian()
         .serialize(&quiz)
         .map_err(|e| format!("Failed to serialize quiz data: {}", e))?;
-    let encrypted_data = encrypt(serialized_data);
+    let compressed_data = compress_data(serialized_data);
+    let encrypted_data = encrypt(compressed_data);
     fs::write(&quiz_file, &encrypted_data)
         .map_err(|e| format!("Failed to write quiz data: {}", e))?;
 
@@ -168,7 +196,8 @@ pub fn load_quizz(app_dir_path: String, filename: String) -> Result<Quiz, String
     let binary_data =
         fs::read(&quiz_file).map_err(|e| format!("Failed to read quiz data: {}", e))?;
     let decrypted_data = decrypt(&binary_data);
-    let cursor = Cursor::new(&decrypted_data);
+    let decompressed_data = decompress_data(decrypted_data);
+    let cursor = Cursor::new(decompressed_data);
     let quiz: Quiz = bincode::options()
         .with_little_endian()
         .deserialize_from(cursor)
@@ -194,7 +223,7 @@ mod test {
         let input = "test".as_bytes().to_vec();
         let encrypt_input = encrypt(input.clone());
         let decrypt_input = decrypt(&encrypt_input);
-        assert_eq!(input, decrypt_input.as_bytes())
+        assert_eq!(input, decrypt_input)
     }
 
     #[test]
