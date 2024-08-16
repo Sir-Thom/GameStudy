@@ -249,4 +249,19 @@ mod test {
         let hash_of_input2 = hash(&input2);
         assert_ne!(hash_of_input, hash_of_input2)
     }
+
+    #[test]
+    fn test_compress() {
+        let input = "test".as_bytes().to_vec();
+        let compress_input = compress_data(input.clone());
+        assert_ne!(input, compress_input)
+    }
+
+    #[test]
+    fn test_decompress() {
+        let input = "test".as_bytes().to_vec();
+        let compress_input = compress_data(input.clone());
+        let decompress_input = decompress_data(compress_input);
+        assert_eq!(input, decompress_input)
+    }
 }
