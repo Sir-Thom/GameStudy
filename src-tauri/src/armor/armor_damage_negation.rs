@@ -38,7 +38,7 @@ use crate::player::stats::PlayerStats;
 ///
 /// # Example
 /// ```
-    
+
 ///
 /// let armor = Armor {
 ///   name: String::from("Test Armor"),
@@ -93,7 +93,6 @@ pub(super) fn calculate_damage_reduction(
         + luck_reduction;
     let total_reduction = base_reduction + total_scaling_reduction;
 
-     
     let special_reduction = if armor.special_ability == Some(String::from("defense")) {
         armor.special_ability_value.unwrap_or(0.0)
     } else {

@@ -20,6 +20,18 @@
     "sql:allow-execute",
     "sql:allow-select",
     "core:window:allow-close",
-    "fs:default"
+    "fs:default",
+    "fs:allow-read-file",
+    "fs:allow-watch",
+    "fs:allow-unwatch",
+    "fs:allow-write-file",
+    "fs:allow-appdata-read-recursive",
+    "fs:allow-app-write-recursive",
+    "dialog:default",
+    "dialog:allow-open"
   ]
+  
+   
+  
+  
 }
