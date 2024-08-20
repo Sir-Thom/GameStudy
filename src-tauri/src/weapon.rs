@@ -26,5 +26,3 @@ pub fn calculate_damage_dealt(weapon_data: String, player_stats: String) -> Resu
     println!("Damage dealt: {:?}", damage_dealt);
     Ok(damage_dealt)
 }
-
-

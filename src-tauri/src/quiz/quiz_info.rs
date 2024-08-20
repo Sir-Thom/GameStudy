@@ -144,7 +144,7 @@ fn decrypt(input: &[u8]) -> Vec<u8> {
             buffer::BufferResult::BufferOverflow => {}
         }
     }
-    final_result 
+    final_result
 }
 
 pub fn save_quiz(app_dir_path: String, quiz: &Quiz, filename: String) -> Result<(), String> {
@@ -160,16 +160,6 @@ pub fn save_quiz(app_dir_path: String, quiz: &Quiz, filename: String) -> Result<
     );
     println!("Hash: {}", hash_file);
 
-    if quiz_file.exists() {
-        let binary_data =
-            fs::read(&quiz_file).map_err(|e| format!("Failed to read quiz data: {}", e))?;
-        let decompressed_data = decompress_data(binary_data);
-        let old_hash = hash(&decompressed_data);
-        println!("Old Hash: {}", old_hash);
-        if old_hash == hash_file {
-            return Ok(());
-        }
-    }
 
     let serialized_data = bincode::options()
         .with_little_endian()
@@ -185,10 +175,11 @@ pub fn save_quiz(app_dir_path: String, quiz: &Quiz, filename: String) -> Result<
 
 pub fn load_quizz(app_dir_path: String, filename: String) -> Result<Quiz, String> {
     let app_folder_path: &Path = Path::new(&app_dir_path);
+    println!("App folder path: {:?}", app_folder_path);
     let mut path = PathBuf::new();
     path.push(app_folder_path);
-    let quiz_file = path.join(filename + ".quiz");
-
+    let quiz_file = path.join(filename );
+    println!("Quiz file path: {:?}", quiz_file);
     if !quiz_file.exists() {
         return Err("File does not exist".to_string());
     }

@@ -30,8 +30,6 @@ pub struct Armor {
     pub luck_scaling: Option<f32>,
 }
 
-
-
 /// Get the damage reduction provided by the armor.
 ///
 /// # Arguments
@@ -48,6 +46,5 @@ pub fn get_armor_damage_reduction(
 ) -> f32 {
     return calculate_damage_reduction(armor, incoming_damage, player_stats);
 }
-
 
 //TODO: Implement a method to allow armor to add bonus damage to the player's attack.

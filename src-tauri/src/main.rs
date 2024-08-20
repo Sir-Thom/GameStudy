@@ -1,27 +1,26 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_fs::FsExt;
+use tauri_plugin_sql::{Migration, MigrationKind};
 
 mod armor;
 mod enemies;
 mod player;
-mod weapon;
 mod quiz;
+mod weapon;
 
-use armor::{calculate_damage_taken,armor_damage_attack_increase};
+use armor::{armor_damage_attack_increase, calculate_damage_taken};
 use enemies::{apply_damage_to_enemy, get_enemy_damage, get_enemy_damage_negation};
 use player::{
     create_character, get_player_armor, get_player_hp, get_player_resistances, get_player_stats,
 };
-use quiz::{save_quiz_cmd,load_quiz_cmd};
+use quiz::{load_quiz_cmd, save_quiz_cmd};
 use weapon::calculate_damage_dealt;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
-
 
 fn main() {
     let migrations = vec![
@@ -189,16 +188,16 @@ INSERT OR IGNORE INTO enemies (
     ];
 
     tauri::Builder::default()
-              .plugin(tauri_plugin_fs::init())
-      .setup(move |app| {
-          // allowed the given directory
-          let scope = app.fs_scope();
-          scope.allow_directory("/home", false);
-          dbg!(scope.allowed());
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
+        .setup(move |app| {
+            // allowed the given directory
+            let scope = app.fs_scope();
+            scope.allow_directory("/home", false);
+            dbg!(scope.allowed());
 
-           
-          Ok(())
-       })
+            Ok(())
+        })
         .plugin(tauri_plugin_sql::Builder::default().build())
         .plugin(
             tauri_plugin_sql::Builder::default()
