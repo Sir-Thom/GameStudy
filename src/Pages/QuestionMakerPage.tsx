@@ -13,7 +13,7 @@ export function QuestionMakerPage() {
     const [quizQuestions, setQuizQuestions] = useState<any[]>([]);
     const [editingIndex, setEditingIndex] = useState<number | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    
+
     const handleAddQuestion = () => {
         const newQuestion = {
             question,
@@ -49,7 +49,7 @@ export function QuestionMakerPage() {
             }))
         };
 
-        const appdir = await path.appDataDir()+"/quiz";
+        const appdir = await path.appDataDir() + "/quiz";
         console.log('App Dir:', appdir);
         const quizData = JSON.stringify(quiz);
         console.log('Quiz Data:', quizData);
@@ -68,13 +68,13 @@ export function QuestionMakerPage() {
             multiple: false,
             directory: false,
             filters: [{ name: 'quiz', extensions: ['quiz'] }]
-          });
-          console.log(file);
+        });
+        console.log(file);
     };
 
     const handleLoadQuiz = async (filename: FileSystemEntry) => {
 
-        const appdir = await path.appDataDir()+"/quiz";
+        const appdir = await path.appDataDir() + "/quiz";
         console.log('App Dir:', appdir);
         console.log('Filename:', filename);
         invoke('load_quiz_cmd', { app_dir_path: appdir, filename: filename })
@@ -89,7 +89,7 @@ export function QuestionMakerPage() {
                 })));
                 setIsModalOpen(false);
             })
-            
+
             .catch((error) => {
                 console.error('Error loading quiz:', error);
             });
@@ -233,7 +233,7 @@ export function QuestionMakerPage() {
             >
                 Save Quiz
             </button>
-            
+
             <button
                 onClick={importQuiz}
                 className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2"
@@ -242,8 +242,8 @@ export function QuestionMakerPage() {
             </button>
 
             <button
-               
-                onClick={()=>setIsModalOpen(true)}
+
+                onClick={() => setIsModalOpen(true)}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
             >
                 Load Quiz

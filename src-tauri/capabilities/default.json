@@ -28,10 +28,7 @@
     "fs:allow-appdata-read-recursive",
     "fs:allow-app-write-recursive",
     "dialog:default",
-    "dialog:allow-open"
+    "dialog:allow-open",
+    "log:default"
   ]
-  
-   
-  
-  
 }

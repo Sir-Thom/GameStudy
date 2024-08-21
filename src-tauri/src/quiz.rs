@@ -7,7 +7,7 @@ pub fn save_quiz_cmd(
     quiz_data: Quiz,
     filename: String,
 ) -> Result<(), String> {
-    save_quiz(app_dir_path, &quiz_data, filename)
+    save_quiz(app_dir_path, &quiz_data, &filename)
 }
 
 #[tauri::command(rename_all = "snake_case")]
