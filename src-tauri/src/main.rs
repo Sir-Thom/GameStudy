@@ -1,8 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use tauri_plugin_fs::FsExt;
+use tauri_plugin_log::TimezoneStrategy::UseLocal;
 use tauri_plugin_sql::{Migration, MigrationKind};
-
 mod armor;
 mod enemies;
 mod player;
@@ -188,6 +188,7 @@ INSERT OR IGNORE INTO enemies (
     ];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .setup(move |app| {
@@ -202,6 +203,13 @@ INSERT OR IGNORE INTO enemies (
         .plugin(
             tauri_plugin_sql::Builder::default()
                 .add_migrations("sqlite:character.db", migrations)
+                .build(),
+        )
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .timezone_strategy(UseLocal)
+                .level_for("sqlx", log::LevelFilter::Error)
+                .level(log::LevelFilter::Debug)
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![greet])
