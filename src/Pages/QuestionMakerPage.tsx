@@ -1,6 +1,5 @@
 import { path } from "@tauri-apps/api";
 import { invoke } from "@tauri-apps/api/core";
-import { rename } from "@tauri-apps/plugin-fs";
 import { open } from '@tauri-apps/plugin-dialog';
 import { useState } from "react";
 import { QuizListModal } from "../components/UI/QuizListModal/QuizListModal";
@@ -64,15 +63,16 @@ export function QuestionMakerPage() {
             });
     };
 
-    const importQuiz = async (e) => {
+    const importQuiz = async () => {
         const file = await open({
             multiple: false,
             directory: false,
+            filters: [{ name: 'quiz', extensions: ['quiz'] }]
           });
           console.log(file);
     };
 
-    const handleLoadQuiz = async (filename) => {
+    const handleLoadQuiz = async (filename: FileSystemEntry) => {
 
         const appdir = await path.appDataDir()+"/quiz";
         console.log('App Dir:', appdir);
