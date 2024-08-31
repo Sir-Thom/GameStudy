@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
 import { useState } from "react";
 import { QuizListModal } from "../components/UI/QuizListModal/QuizListModal";
+import Sidebar from "../components/UI/Sidebar/Sidebar";
 
 export function QuestionMakerPage() {
     const [title, setTitle] = useState('');
@@ -141,7 +142,9 @@ export function QuestionMakerPage() {
     };
 
     return (
-        <div className="container mx-auto p-4">
+        <div className="flex">
+            <Sidebar importQuiz={importQuiz} onLoadQuiz={ handleLoadQuiz}/>
+            <div className="w-3/4 p-8">
             <h1 className="text-3xl font-bold mb-4">Create Quiz</h1>
             <div className="mb-4">
                 <label className="block text-lg font-semibold mb-2">Quiz Title:</label>
@@ -284,5 +287,6 @@ export function QuestionMakerPage() {
                 </ul>
             </div>
         </div>
+          </div>
     );
 }

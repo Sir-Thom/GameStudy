@@ -4,7 +4,7 @@ use aes_gcm::{Aes256Gcm, KeyInit, Nonce};
 use bincode;
 use bincode::Options;
 use flate2;
-use log::log;
+
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::error::Error;
