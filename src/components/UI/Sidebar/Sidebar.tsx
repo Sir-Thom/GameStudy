@@ -1,5 +1,4 @@
 import { Separator } from '@radix-ui/react-separator';
-import React from 'react';
 import QuizList from '../Quizlist/Quizlist';
 
 const Sidebar = ({ onLoadQuiz ,importQuiz}) => {

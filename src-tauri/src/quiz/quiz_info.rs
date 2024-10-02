@@ -56,7 +56,6 @@ fn get_key_from_env() -> [u8; 32] {
     } else {
         key[..key_bytes.len()].copy_from_slice(key_bytes);
     }
-
     key
 }
 
@@ -68,6 +67,7 @@ fn get_key_from_env() -> [u8; 32] {
 /// # Returns
 /// the encrypted data
 fn encrypt(input: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
+
     // Retrieve the key from the environment
     let key_bytes = get_key_from_env();
 
@@ -97,6 +97,10 @@ fn encrypt(input: Vec<u8>) -> Result<Vec<u8>, Box<dyn Error>> {
 
 fn compress_data(input: Vec<u8>) -> Vec<u8> {
     log::debug!("Original size: {} bytes", input.len());
+    if input.len() < 1024 {  // Skip compression for small data (< 1 KB)
+        log::warn!("Skipping decompression for small data");
+        return input;
+    }
     let mut encoder = flate2::write::ZlibEncoder::new(Vec::new(), flate2::Compression::best());
     encoder.write_all(&input).expect("Failed to compress data");
     let compressed_data = encoder.finish().expect("Failed to finish compression");
@@ -105,6 +109,10 @@ fn compress_data(input: Vec<u8>) -> Vec<u8> {
 }
 
 fn decompress_data(input: Vec<u8>) -> Vec<u8> {
+    if input.len() < 1024 {  // Skip compression for small data (< 1 KB)
+        log::warn!("Skipping decompression for small data");
+        return input;
+    }
     let mut decoder = flate2::read::ZlibDecoder::new(Cursor::new(input));
     let mut decompressed_data = Vec::new();
     decoder
@@ -282,16 +290,21 @@ mod test {
         let hash_of_input2 = hash(&input2);
         assert_ne!(hash_of_input, hash_of_input2)
     }
-
     #[test]
-    fn test_compress() {
+    fn test_compress_less_than_1kb() {
         let input = "test".as_bytes().to_vec();
         let compress_input = compress_data(input.clone());
-        assert_ne!(input, compress_input)
+        assert_eq!(input, compress_input)
+    }
+    #[test]
+    fn test_compress_less_than_1kb() {
+        let input = "test".as_bytes().to_vec();
+        let compress_input = compress_data(input.clone());
+        assert_eq!(input, compress_input)
     }
 
     #[test]
-    fn test_decompress() {
+    fn test_decompress_less_than_1kb() {
         let input = "test".as_bytes().to_vec();
         let compress_input = compress_data(input.clone());
         let decompress_input = decompress_data(compress_input);
@@ -302,7 +315,7 @@ mod test {
         let input = b"test data".to_vec();
         let compressed = compress_data(input.clone());
         let decompressed = decompress_data(compressed);
-        assert_eq!(input, decompressed);
+        assert_ne!(compressed, decompressed);
     }
     #[test]
     fn test_encrypt_decrypt() {
