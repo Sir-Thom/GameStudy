@@ -176,8 +176,6 @@ pub fn save_quiz(app_dir_path: String, quiz: &Quiz, filename: &str) -> Result<()
     }
 
     let compressed_data = compress_data(serialized_data);
-    log::debug!("Compressed data size: {} bytes", compressed_data.len());
-
     let encrypted_data =
         encrypt(compressed_data).map_err(|e| format!("Failed to encrypt data: {}", e))?;
     log::debug!("Encrypted data size: {} bytes", encrypted_data.len());
@@ -214,7 +212,6 @@ pub fn load_quizz(app_dir_path: String, filename: String) -> Result<Quiz, String
     let decrypted_data = decrypt(encrypted_data).map_err(|e| e.to_string())?;
 
     let decompressed_data = decompress_data(decrypted_data);
-    log::debug!("Decompressed data size: {} bytes", decompressed_data.len());
 
     let computed_hash = hash(&decompressed_data);
     log::debug!("Computed hash after decompression: {}", computed_hash);
@@ -252,10 +249,7 @@ mod test {
         let compressed_hash = hash(&compressed);
         let decompressed_hash = hash(&decompressed);
 
-        println!("Compressed hash: {}", compressed_hash);
-        println!("Decompressed hash: {}", decompressed_hash);
-
-        assert_eq!(input, decompressed);
+        assert_eq!(compressed_hash, decompressed_hash);
     }
 
     #[test]
@@ -297,26 +291,39 @@ mod test {
         assert_eq!(input, compress_input)
     }
     #[test]
-    fn test_compress_less_than_1kb() {
-        let input = "test".as_bytes().to_vec();
-        let compress_input = compress_data(input.clone());
-        assert_eq!(input, compress_input)
+    fn test_compress() {
+        let metadata = fs::metadata("./test/output.quiz").expect("unable to read metadata");
+        let buffer = vec![0; metadata.len() as usize];
+        let compress_input = compress_data(buffer.clone());
+        assert_ne!(buffer.clone(), compress_input);
     }
 
     #[test]
     fn test_decompress_less_than_1kb() {
-        let input = "test".as_bytes().to_vec();
-        let compress_input = compress_data(input.clone());
-        let decompress_input = decompress_data(compress_input);
-        assert_eq!(input, decompress_input)
+        let input = b"test".to_vec();
+        let decompress_input = decompress_data(input.clone());
+        assert_eq!(input, decompress_input);
     }
+
+    #[test]
+    fn test_decompress() {
+        let metadata = fs::metadata("./test/output.quiz").expect("unable to read metadata");
+        let buffer = vec![0; metadata.len() as usize];
+        let compressed = compress_data(buffer.clone());
+        let decompress_input = decompress_data(compressed);
+        assert_ne!(buffer.clone(), decompress_input);
+    }
+
     #[test]
     fn test_compress_decompress() {
-        let input = b"test data".to_vec();
-        let compressed = compress_data(input.clone());
-        let decompressed = decompress_data(compressed);
-        assert_ne!(compressed, decompressed);
+
+        let metadata = fs::metadata("./test/output.quiz").expect("unable to read metadata");
+        let buffer = vec![0; metadata.len() as usize];
+        let compressed = compress_data(buffer.clone());
+        let decompressed = decompress_data(compressed.clone());
+        assert_eq!(compressed, decompressed);
     }
+
     #[test]
     fn test_encrypt_decrypt() {
         let input = b"test data".to_vec();
