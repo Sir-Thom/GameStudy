@@ -5,7 +5,8 @@
 .logo.vite:hover {
   filter: drop-shadow(0 0 2em #747bff);
 }
-.inventory, .equipment {
+.inventory,
+.equipment {
   display: flex;
   flex-wrap: wrap;
   border: 1px solid #ccc;

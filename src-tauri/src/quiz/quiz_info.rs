@@ -225,6 +225,19 @@ pub fn load_quizz(app_dir_path: String, filename: String) -> Result<Quiz, String
     Ok(quiz)
 }
 
+pub fn remove_quiz(app_dir_path: String, filename: String) -> Result<(), String> {
+    let app_folder_path: &Path = Path::new(&app_dir_path);
+    let quiz_file = app_folder_path.join(filename);
+
+    if !quiz_file.exists() {
+        return Err("File does not exist".to_string());
+    }
+
+    fs::remove_file(&quiz_file).map_err(|e| format!("Failed to remove quiz data: {}", e))?;
+
+    Ok(())
+}
+
 #[cfg(test)]
 mod test {
     use super::*;

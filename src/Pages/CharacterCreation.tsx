@@ -45,17 +45,11 @@ const CharacterCreationPage: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [classes, armor, weapons] = await Promise.all([
-          fetchClasses(db),
-          fetchArmor(db),
-          fetchWeapons(db),
-        ]);
+        const [classes, armor, weapons] = await Promise.all([fetchClasses(db), fetchArmor(db), fetchWeapons(db)]);
 
         setClasses(classes);
         setArmor(armor);
         setWeapons(weapons);
-
-     
       } catch (error) {
         console.error('Error loading data:', error);
       }
@@ -65,8 +59,11 @@ const CharacterCreationPage: React.FC = () => {
   }, [db]);
 
   const updateClassData = (className: ClassType) => {
-    const selectedClassData = classes.find((cls) => cls.name === className 
-    ) || { name: "" , starting_weapon_id: 0, starting_armor_id: 0};
+    const selectedClassData = classes.find((cls) => cls.name === className) || {
+      name: '',
+      starting_weapon_id: 0,
+      starting_armor_id: 0,
+    };
     setCharacterData((prevData) => ({
       ...prevData,
       class_name: selectedClassData.name,
@@ -130,103 +127,95 @@ const CharacterCreationPage: React.FC = () => {
   const startingWeapon = weapons.find((weapon) => weapon.id === characterData.weapon_id);
   const startingArmor = armor.find((armor) => armor.id === characterData.armor_id);
 
-  const selectedClassData = classes.find((cls) => cls.name === characterData.class_name) || { name: "", description: "" };
+  const selectedClassData = classes.find((cls) => cls.name === characterData.class_name) || {
+    name: '',
+    description: '',
+  };
 
   return (
     <div className="w-screen h-screen text-black bg-white p-8">
-    <h1 className="text-4xl font-bold mb-6">Create Your Character</h1>
-    <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Character Details Section */}
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <div className="mb-6">
-          <label htmlFor="name" className="block text-lg font-semibold mb-2">
-            Character Name:
-          </label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={characterData.name}
-            onChange={(e) => setCharacterData({ ...characterData, name: e.target.value })}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Class Selection Button */}
-        <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600"
-          >
-            Select Your Class
-          </button>
-          <p className="mt-2 text-sm text-gray-500">
-            {selectedClassData.name}
-          </p>
-        </div>
-
-        {/* Portrait Selection */}
-        <PortraitSelection selectedPortrait={characterData.image} onSelect={handlePortraitSelect} />
-
-
-        <button
-          type="submit"
-          className="mt-6 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600"
-        >
-          Create Character
-        </button>
-      </div>
-
-      {/* Character Preview Section */}
-      <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Class Preview</h2>
-        {selectedClassData.name && (
-          <div>
-            <h3 className="text-xl font-semibold mb-2">Class:</h3>
-            <p>{selectedClassData.name}</p>
-            <div className="mt-4">
-              <h4 className="text-lg font-semibold">Base Stats:</h4>
-              <ul>
-                {Object.entries(JSON.parse((selectedClassData as Classes).base_stats)).map(([stat, value]) => (
-                  <li key={stat}>
-                    <span className="font-semibold">{stat}:</span> {String(value)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="mt-4">
-              <h4 className="text-lg font-semibold">Starting Weapon:</h4>
-              {startingWeapon ? (
-                <p>{startingWeapon.name}</p>
-              ) : (
-                <p>No starting weapon</p>
-              )}
-            </div>
-            <div className="mt-4">
-              <h4 className="text-lg font-semibold">Starting Armor:</h4>
-              {startingArmor ? (
-                <p>{startingArmor.name}</p>
-              ) : (
-                <p>No starting armor</p>
-              )}
-            </div>
+      <h1 className="text-4xl font-bold mb-6">Create Your Character</h1>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Character Details Section */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <div className="mb-6">
+            <label htmlFor="name" className="block text-lg font-semibold mb-2">
+              Character Name:
+            </label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              value={characterData.name}
+              onChange={(e) => setCharacterData({ ...characterData, name: e.target.value })}
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
-        )}
-      </div>
-    </form>
 
-    {/* Class Selection Modal */}
-    {isModalOpen && (
-      <ClassSelectionModal
-        classes={classes}
-        selectedClass={selectedClass as ClassType}
-        onClassSelect={handleClassSelect}
-        onClose={() => setIsModalOpen(false)}
-      />
-    )}
-  </div>
-);
+          {/* Class Selection Button */}
+          <div className="mb-6">
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md shadow-md hover:bg-blue-600"
+            >
+              Select Your Class
+            </button>
+            <p className="mt-2 text-sm text-gray-500">{selectedClassData.name}</p>
+          </div>
+
+          {/* Portrait Selection */}
+          <PortraitSelection selectedPortrait={characterData.image} onSelect={handlePortraitSelect} />
+
+          <button
+            type="submit"
+            className="mt-6 px-4 py-2 bg-green-500 text-white rounded-md shadow-md hover:bg-green-600"
+          >
+            Create Character
+          </button>
+        </div>
+
+        {/* Character Preview Section */}
+        <div className="bg-white p-6 rounded-lg shadow-lg">
+          <h2 className="text-2xl font-bold mb-4">Class Preview</h2>
+          {selectedClassData.name && (
+            <div>
+              <h3 className="text-xl font-semibold mb-2">Class:</h3>
+              <p>{selectedClassData.name}</p>
+              <div className="mt-4">
+                <h4 className="text-lg font-semibold">Base Stats:</h4>
+                <ul>
+                  {Object.entries(JSON.parse((selectedClassData as Classes).base_stats)).map(([stat, value]) => (
+                    <li key={stat}>
+                      <span className="font-semibold">{stat}:</span> {String(value)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mt-4">
+                <h4 className="text-lg font-semibold">Starting Weapon:</h4>
+                {startingWeapon ? <p>{startingWeapon.name}</p> : <p>No starting weapon</p>}
+              </div>
+              <div className="mt-4">
+                <h4 className="text-lg font-semibold">Starting Armor:</h4>
+                {startingArmor ? <p>{startingArmor.name}</p> : <p>No starting armor</p>}
+              </div>
+            </div>
+          )}
+        </div>
+      </form>
+
+      {/* Class Selection Modal */}
+      {isModalOpen && (
+        <ClassSelectionModal
+          classes={classes}
+          selectedClass={selectedClass as ClassType}
+          onClassSelect={handleClassSelect}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
+    </div>
+  );
 };
 export default CharacterCreationPage;

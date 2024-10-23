@@ -20,7 +20,7 @@ export enum WeaponType {
   GreatSper = 'GreatSpear',
   Hammer = 'Hammer',
   WarHammer = 'WarHammer',
-  Crossbow = 'Crossbow'
+  Crossbow = 'Crossbow',
 }
 
 export type DamageType = 'Physical' | 'Fire' | 'Ice' | 'Magic';
