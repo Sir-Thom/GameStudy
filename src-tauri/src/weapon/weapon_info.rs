@@ -70,6 +70,15 @@ fn test_get_weapon_damage(){
         constitution_scaling: None,
         luck_scaling: None,
         };
-    let damage = get_weapon_damage(weapon, player_stats);
+    let player_stats = PlayerStats {
+        strength: 10,
+        dexterity: 10,
+        intelligence: 10,
+        constitution: 10,
+        luck: 10,
+        player_id: 1, 
+    };
+    let damage = get_weapon_damage(&test_weapon, &player_stats);
+    assert_eq!(damage, 0);
 }
 }
