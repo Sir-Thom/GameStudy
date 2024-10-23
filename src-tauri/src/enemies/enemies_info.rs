@@ -2,10 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     player::stats::PlayerResistances,
-    weapon::{
-        self,
-        weapon_info::{self, Weapon},
-    },
+    weapon::weapon_info::Weapon,
 };
 
 #[derive(Serialize, Deserialize, Debug)]

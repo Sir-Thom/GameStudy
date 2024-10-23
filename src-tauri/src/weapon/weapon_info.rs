@@ -24,3 +24,52 @@ pub struct Weapon {
 pub fn get_weapon_damage(weapon: &Weapon, player_stats: &PlayerStats) -> u32 {
     return calculate_weapon_damage(weapon, player_stats);
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+#[test]
+fn test_get_weapon(){
+    let test_weapon = Weapon{
+        id:0,
+        name: "".to_string(),
+        weapon_type: WeaponType::SwordAndShield,
+        base_damage: 0,
+        fire_damage: 0,
+        lightning_damage: 0,
+        magic_damage: 0,
+        frost_damage: 0,
+        defense_provided: 0,
+        upgrade_level: 0,
+        description: "".to_string(),
+        strength_scaling: None,
+        dexterity_scaling: None,
+        intelligence_scaling: None,
+        constitution_scaling: None,
+        luck_scaling: None,
+        };
+    assert_eq!(test_weapon.weapon_type.get_weapon_type(),WeaponType::SwordAndShield.get_weapon_type());
+    }
+#[test]
+fn test_get_weapon_damage(){
+     let test_weapon = Weapon{
+        id:0,
+        name: "".to_string(),
+        weapon_type: WeaponType::SwordAndShield,
+        base_damage: 0,
+        fire_damage: 0,
+        lightning_damage: 0,
+        magic_damage: 0,
+        frost_damage: 0,
+        defense_provided: 0,
+        upgrade_level: 0,
+        description: "".to_string(),
+        strength_scaling: None,
+        dexterity_scaling: None,
+        intelligence_scaling: None,
+        constitution_scaling: None,
+        luck_scaling: None,
+        };
+    let damage = get_weapon_damage(weapon, player_stats);
+}
+}
