@@ -14,10 +14,10 @@ const GameView: React.FC = () => {
     setIsPaused((prev) => !prev);
   };
 
-   const correctAnswer = '4'; // Example correct answer
+  const correctAnswer = '4'; // Example correct answer
 
   useEffect(() => {
-     const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         togglePauseMenu();
       }
@@ -28,10 +28,9 @@ const GameView: React.FC = () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
 
-      if (!isPlayerTurn && enemyHealth > 0) {
+    if (!isPlayerTurn && enemyHealth > 0) {
       // Simulate enemy action when it's not the player's turn
       simulateEnemyTurn();
-    
     }
   }, [isPlayerTurn]);
 
@@ -68,7 +67,7 @@ const GameView: React.FC = () => {
 
   return (
     <div className="w-screen h-screen text-black bg-gray-100 p-8 rounded-lg shadow-lg">
-     <PauseMenu isVisible={isPaused} onClose={togglePauseMenu} mainMenuLink='/' />
+      <PauseMenu isVisible={isPaused} onClose={togglePauseMenu} mainMenuLink="/" />
       <h1 className="text-4xl font-bold mb-6">Game View</h1>
 
       <div className="mb-6">
@@ -97,11 +96,7 @@ const GameView: React.FC = () => {
       </div>
 
       <div className="mt-6">
-        {feedback && (
-          <p className={`text-lg ${isCorrect === true ? 'text-green-600' : 'text-red-600'}`}>
-            {feedback}
-          </p>
-        )}
+        {feedback && <p className={`text-lg ${isCorrect === true ? 'text-green-600' : 'text-red-600'}`}>{feedback}</p>}
       </div>
 
       <div className="mt-6">

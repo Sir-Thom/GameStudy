@@ -10,5 +10,4 @@ export interface Classes {
   lightning_resistance: number;
   starting_weapon_id: number;
   starting_armor_id: number;
-
 }

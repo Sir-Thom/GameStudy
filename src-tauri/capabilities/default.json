@@ -5,6 +5,7 @@
   "windows": [
     "main"
   ],
+
   "permissions": [
     "core:path:default",
     "core:event:default",
@@ -25,6 +26,11 @@
     "fs:allow-watch",
     "fs:allow-unwatch",
     "fs:allow-write-file",
+    "fs:allow-remove",
+    {
+      "identifier": "fs:allow-remove",
+      "allow" :[{ "path": "$APP/quiz/**" }]
+  },
     "fs:allow-appdata-read-recursive",
     "fs:allow-app-write-recursive",
     "dialog:default",

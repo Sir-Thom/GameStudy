@@ -14,7 +14,7 @@ use enemies::{apply_damage_to_enemy, get_enemy_damage, get_enemy_damage_negation
 use player::{
     create_character, get_player_armor, get_player_hp, get_player_resistances, get_player_stats,
 };
-use quiz::{load_quiz_cmd, save_quiz_cmd};
+use quiz::{load_quiz_cmd, save_quiz_cmd,remove_quiz_cmd};
 use weapon::calculate_damage_dealt;
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -193,9 +193,7 @@ INSERT OR IGNORE INTO enemies (
         .plugin(tauri_plugin_fs::init())
         .setup(move |app| {
             // allowed the given directory
-            let scope = app.fs_scope();
-            scope.allow_directory("/home", false);
-            dbg!(scope.allowed());
+     
 
             Ok(())
         })
@@ -227,6 +225,7 @@ INSERT OR IGNORE INTO enemies (
             armor_damage_attack_increase,
             save_quiz_cmd,
             load_quiz_cmd,
+            remove_quiz_cmd,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
