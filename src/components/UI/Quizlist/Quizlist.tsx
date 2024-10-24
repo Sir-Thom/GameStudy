@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { path } from '@tauri-apps/api';
 import { BaseDirectory, readDir, watch } from '@tauri-apps/plugin-fs';
-import { ScrollArea } from "@radix-ui/react-scroll-area"; // Retain for scroll functionality
 import { Trash2 } from "lucide-react";
 
 interface QuizListProps {
@@ -43,7 +42,7 @@ export default function QuizList({ onLoadQuiz, onRemove }: QuizListProps) {
   }, []);
 
   return (
-    <ScrollArea className="h-[calc(75vh-12rem)] w-full rounded-md border">
+    <div className="overflow-y-auto h-full"> {/* Adjust height as needed */}
       <div className="p-4">
         {quizFiles.length === 0 ? (
           <p className="text-center text-gray-500">No quizzes found</p>
@@ -55,7 +54,6 @@ export default function QuizList({ onLoadQuiz, onRemove }: QuizListProps) {
                   className="flex-1 text-left bg-white border rounded-md shadow-sm hover:shadow-md transition-shadow py-2 px-3"
                   onClick={() => onLoadQuiz(file)}
                 >
-                 
                   <span className="truncate font-medium text-gray-800">{file.split('.')[0]}</span>
                 </button>
                 <button
@@ -70,6 +68,6 @@ export default function QuizList({ onLoadQuiz, onRemove }: QuizListProps) {
           </ul>
         )}
       </div>
-    </ScrollArea>
+    </div>
   );
 }
