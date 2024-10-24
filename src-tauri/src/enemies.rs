@@ -88,3 +88,51 @@ pub fn get_enemy_drops(enemy_data: String, player_level: u32) -> Result<(u32, u3
 pub fn get_enemy_damage_negation(enemy: Enemies, incoming_damage: f32, weapon: Weapon) -> f32 {
     calculate_enemy_damage_negation(&enemy, incoming_damage, &weapon)
 }
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_enemy_damage() {
+   
+        let enemy_data = r#"[{"id":1,"image":"","experience_reward":0,"gold_reward":0,"min_level_encountered":0,"lightning_resistance":0,"magic_resistance":0,"frost_resistance":0,"fire_resistance":0,"hp":10,"abilities":["test"],"defense_stat":10,"defense_scaling":0,"damage_scaling":0,"name":"Test Enemy","base_damage":10,"fire_damage":0,"lightning_damage":0,"magic_damage":0,"frost_damage":0,"defense_provided":0,"experience_drop":10,"gold_drop":10}]"#;
+        let player_resistances = r#"[{"player_id":0,"fire_resistance":0,"lightning_resistance":0,"magic_resistance":0,"frost_resistance":0}]"#;
+        let player_level = 1;
+
+        let damage = get_enemy_damage(enemy_data.to_string(), player_resistances.to_string(), player_level).unwrap();
+        assert_eq!(damage, 10.0);
+    }
+    #[test]
+    fn test_get_enemy_drops() {
+        let player_level = 1;
+        let enemy_data = r#"
+        {
+            "id": 1,
+            "image": "",
+            "experience_reward": 10,
+            "gold_reward": 10,
+            "min_level_encountered": 0,
+            "lightning_resistance": 0,
+            "magic_resistance": 0,
+            "frost_resistance": 0,
+            "fire_resistance": 0,
+            "hp": 10,
+            "abilities": ["test"],
+            "defense_stat": 10,
+            "defense_scaling": 0,
+            "damage_scaling": 0,
+            "name": "Test Enemy",
+            "base_damage": 10,
+            "fire_damage": 0,
+            "lightning_damage": 0,
+            "magic_damage": 0,
+            "frost_damage": 0,
+            "defense_provided": 0,
+            "experience_drop": 10,
+            "gold_drop": 10
+        }"#;
+
+        let drops = get_enemy_drops(enemy_data.to_string(), player_level).unwrap();
+        assert_eq!(drops, (11, 11));
+    }
+}

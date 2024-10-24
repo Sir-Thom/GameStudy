@@ -32,3 +32,14 @@ impl WeaponType {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_weapon_type() {
+        let weapon = WeaponType::SwordAndShield;
+        assert_eq!(weapon.get_weapon_type(), "SwordAndShield");
+    }
+}

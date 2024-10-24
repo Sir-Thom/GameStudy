@@ -1,6 +1,5 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use tauri_plugin_fs::FsExt;
 use tauri_plugin_log::TimezoneStrategy::UseLocal;
 use tauri_plugin_sql::{Migration, MigrationKind};
 mod armor;
@@ -191,7 +190,7 @@ INSERT OR IGNORE INTO enemies (
         .plugin(tauri_plugin_log::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
-        .setup(move |app| {
+        .setup(move |_app| {
             // allowed the given directory
      
 
